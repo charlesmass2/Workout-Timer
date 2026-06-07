@@ -3,6 +3,7 @@ package io.shizen.workouttimer.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,7 @@ fun SectionLabel(title: String, sub: String? = null, modifier: Modifier = Modifi
 fun ScreenHeader(eyebrow: String, title: String, trailing: @Composable (() -> Unit)? = null) {
     Row(
         modifier = Modifier
+            .fillMaxWidth()
             .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 16.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.SpaceBetween,
