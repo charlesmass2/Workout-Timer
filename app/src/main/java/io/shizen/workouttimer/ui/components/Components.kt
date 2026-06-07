@@ -109,6 +109,7 @@ fun Btn(
             fontFamily = WtFonts.Sans,
             maxLines = 2,
             textAlign = TextAlign.Center,
+            lineHeight = fontSize * 1.1f,
         )
     }
 }
