@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.shizen.workouttimer.ui.theme.WT
@@ -106,6 +107,8 @@ fun Btn(
             fontSize = fontSize,
             fontWeight = FontWeight.Bold,
             fontFamily = WtFonts.Sans,
+            maxLines = 2,
+            textAlign = TextAlign.Center,
         )
     }
 }
