@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -78,15 +79,22 @@ fun Btn(
         BtnVariant.Danger -> Triple(Color.Transparent, WT.Danger, WT.Danger.copy(alpha = 0.45f))
     }
     val iconSize = if (size == BtnSize.Lg) 22.dp else 18.dp
+    val interaction = remember { MutableInteractionSource() }
     var m = modifier
         .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier)
         .height(h)
-        .alpha(if (enabled) 1f else 0.4f)
+        .then(if (enabled) Modifier else Modifier.alpha(0.4f))
         .clip(RoundedCornerShape(14.dp))
         .background(bg)
     if (borderColor != null) m = m.border(1.5.dp, borderColor, RoundedCornerShape(14.dp))
     Row(
-        modifier = m.pressScale(enabled = enabled, pressed = 0.97f, onClick = onClick)
+        modifier = m
+            .fClickable(
+                interactionSource = interaction,
+                indication = ripple(color = fg),
+                enabled = enabled,
+                onClick = onClick,
+            )
             .padding(horizontal = padH),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
@@ -116,13 +124,19 @@ fun IconBtn(
 ) {
     val background = bg ?: if (active) WT.Accent else WT.Surface2
     val tint = color ?: if (active) WT.OnAccent else WT.Text
+    val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
             .size(size.dp)
-            .alpha(if (enabled) 1f else 0.35f)
+            .then(if (enabled) Modifier else Modifier.alpha(0.35f))
             .clip(RoundedCornerShape(14.dp))
             .background(background)
-            .pressScale(enabled = enabled, pressed = 0.92f, onClick = onClick),
+            .fClickable(
+                interactionSource = interaction,
+                indication = ripple(bounded = true, color = tint),
+                enabled = enabled,
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         WtIcon(name, size = iconSize.dp, color = tint)

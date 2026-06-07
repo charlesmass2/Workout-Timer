@@ -2,6 +2,8 @@ package io.shizen.workouttimer.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -173,7 +176,10 @@ private fun RatingPicker(options: List<Rating>, value: Int?, onChange: (Int) -> 
                     .clip(RoundedCornerShape(14.dp))
                     .background(if (on) color.copy(alpha = 0.16f) else WT.Surface2)
                     .border(1.5.dp, if (on) color else WT.Line, RoundedCornerShape(14.dp))
-                    .pressScale(pressed = 0.97f) { onChange(o.key) },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(color = color),
+                    ) { onChange(o.key) },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -266,12 +272,11 @@ private fun RepCell(
 ) {
     Column(
         modifier
-            .height(56.dp)
             .clip(RoundedCornerShape(11.dp))
             .background(WT.Bg)
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .padding(horizontal = 4.dp, vertical = 9.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         Text("SET ${s.setNumber}", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = WT.Faint, fontFamily = WtFonts.Mono)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -287,8 +292,8 @@ private fun RepCell(
                     else reps[s.workIndex] = digits.toInt()
                 },
                 placeholder = "—",
-                width = 30.dp,
-                fontSize = 17.sp,
+                width = 40.dp,
+                fontSize = 18.sp,
             )
             MiniBtn("+") {
                 val cur = reps[s.workIndex] ?: 0
@@ -301,7 +306,7 @@ private fun RepCell(
 @Composable
 private fun MiniBtn(symbol: String, onClick: () -> Unit) {
     Box(
-        Modifier.size(22.dp, 26.dp).pressScale(onClick = onClick),
+        Modifier.size(20.dp, 28.dp).pressScale(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(symbol, fontSize = 18.sp, color = WT.Muted)

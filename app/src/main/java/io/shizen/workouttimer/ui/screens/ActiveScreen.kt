@@ -235,7 +235,7 @@ fun ActiveScreen(
                     iconSize = 20,
                 )
                 IconBtn(
-                    if (settings.sound) "bell" else "bellOff",
+                    if (settings.sound) "speaker" else "speakerOff",
                     onClick = onToggleSound,
                     active = settings.sound,
                     iconSize = 20,
