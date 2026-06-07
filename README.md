@@ -52,13 +52,24 @@ app/src/main/java/io/shizen/workouttimer/
 
 ## Build
 
+Requires the Android SDK (compileSdk 35) and a JDK 17+. The first build downloads
+the Android Gradle Plugin and Compose dependencies from Google's Maven and Maven
+Central, so a network connection is needed.
+
+If the Gradle wrapper jar (`gradle/wrapper/gradle-wrapper.jar`) is not present,
+generate it once with a locally installed Gradle (8.x):
+
+```bash
+gradle wrapper --gradle-version 8.11.1
+```
+
+Then build:
+
 ```bash
 ./gradlew assembleDebug
 ```
 
-Requires the Android SDK (compileSdk 35) and a JDK 17+. The first build downloads
-the Android Gradle Plugin and Compose dependencies from Google's Maven and Maven
-Central, so a network connection is needed.
+Opening the project in Android Studio also regenerates the wrapper automatically.
 
 ## Notes
 
