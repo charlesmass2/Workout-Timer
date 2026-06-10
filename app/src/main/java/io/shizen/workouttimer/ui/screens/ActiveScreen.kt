@@ -56,6 +56,7 @@ fun ActiveScreen(
     onTogglePause: () -> Unit,
     onAdvance: () -> Unit,
     onSetReps: (Int) -> Unit,
+    onSetRepsForWork: (Int, Int) -> Unit,
     onFinishNow: () -> Unit,
     onToggleVibrate: () -> Unit,
     onToggleSound: () -> Unit,
@@ -162,26 +163,16 @@ fun ActiveScreen(
                             fontFamily = WtFonts.Mono,
                         )
                         Spacer(Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(WT.Surface)
-                                .border(1.dp, WT.Line, RoundedCornerShape(14.dp))
-                                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Text("REPS", fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
-                            Stepper(
-                                value = state.reps[cur.workIndex] ?: 0,
-                                onValueChange = onSetReps,
-                                min = 0, max = 999, width = 120,
-                            )
-                        }
+                        RepsInput(
+                            label = "REPS",
+                            value = state.reps[cur.workIndex] ?: 0,
+                            onValueChange = onSetReps,
+                        )
                     }
                     StepKind.REST -> {
                         val next = if (cur.restType == RestType.SUPERSET) cur.nextSuperset else cur.nextExercise
                         val nextWork = nextWorkStep(steps, state.idx)
+                        val prevWork = prevWorkStep(steps, state.idx)
                         Text("Catch your breath", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
                         Text("Next up: $next", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, textAlign = TextAlign.Center)
                         if (nextWork != null) {
@@ -194,6 +185,14 @@ fun ActiveScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = WT.Muted,
                                 fontFamily = WtFonts.Mono,
+                            )
+                        }
+                        if (prevWork != null) {
+                            Spacer(Modifier.height(16.dp))
+                            RepsInput(
+                                label = "REPS · ${prevWork.exerciseName}",
+                                value = state.reps[prevWork.workIndex] ?: 0,
+                                onValueChange = { onSetRepsForWork(prevWork.workIndex, it) },
                             )
                         }
                     }
@@ -318,6 +317,33 @@ private fun nextWorkStep(steps: List<Step>, idx: Int): Step? {
         i++
     }
     return null
+}
+
+/** The most recent WORK step before [idx] (the set just finished, to log reps during rest). */
+private fun prevWorkStep(steps: List<Step>, idx: Int): Step? {
+    var i = idx - 1
+    while (i >= 0) {
+        if (steps[i].kind == StepKind.WORK) return steps[i]
+        i--
+    }
+    return null
+}
+
+/** Label + stepper for logging reps of a set. */
+@Composable
+private fun RepsInput(label: String, value: Int, onValueChange: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(WT.Surface)
+            .border(1.dp, WT.Line, RoundedCornerShape(14.dp))
+            .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
+        Stepper(value = value, onValueChange = onValueChange, min = 0, max = 999, width = 120)
+    }
 }
 
 // ── Set dots ────────────────────────────────────────────────
