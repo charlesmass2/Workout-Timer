@@ -181,8 +181,21 @@ fun ActiveScreen(
                     }
                     StepKind.REST -> {
                         val next = if (cur.restType == RestType.SUPERSET) cur.nextSuperset else cur.nextExercise
+                        val nextWork = nextWorkStep(steps, state.idx)
                         Text("Catch your breath", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
                         Text("Next up: $next", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, textAlign = TextAlign.Center)
+                        if (nextWork != null) {
+                            Spacer(Modifier.height(16.dp))
+                            SetDots(nextWork.totalSets, nextWork.setNumber)
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                "SET ${nextWork.setNumber} / ${nextWork.totalSets}",
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = WT.Muted,
+                                fontFamily = WtFonts.Mono,
+                            )
+                        }
                     }
                     StepKind.COUNTDOWN -> {
                         Text("Starting in…", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted)
@@ -295,6 +308,16 @@ private fun TimerHero(phase: StepKind, remaining: Double, frac: Float, color: Co
             )
         }
     }
+}
+
+/** The first WORK step at or after [idx] (used to preview the upcoming set during rest). */
+private fun nextWorkStep(steps: List<Step>, idx: Int): Step? {
+    var i = idx + 1
+    while (i < steps.size) {
+        if (steps[i].kind == StepKind.WORK) return steps[i]
+        i++
+    }
+    return null
 }
 
 // ── Set dots ────────────────────────────────────────────────
