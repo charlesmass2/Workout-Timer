@@ -85,7 +85,15 @@ fun AppRoot(vm: AppViewModel) {
             is Screen.Detail -> HistoryDetailScreen(
                 entry = s.entry,
                 onBack = vm::backToHistory,
+                onEdit = vm::editHistory,
                 onDelete = { vm.deleteHistory(it); vm.backToHistory() },
+            )
+
+            is Screen.EditHistory -> SummaryScreen(
+                result = s.entry,
+                onSave = vm::updateHistory,
+                onDiscard = { vm.openDetail(s.entry) },
+                isEdit = true,
             )
 
             is Screen.Tabs -> Column(Modifier.fillMaxSize()) {

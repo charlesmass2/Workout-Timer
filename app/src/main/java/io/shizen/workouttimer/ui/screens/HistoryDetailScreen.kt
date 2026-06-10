@@ -48,6 +48,7 @@ private class Group(val name: String, val block: String, val sets: MutableList<S
 fun HistoryDetailScreen(
     entry: WorkoutResult,
     onBack: () -> Unit,
+    onEdit: (WorkoutResult) -> Unit,
     onDelete: (String) -> Unit,
 ) {
     var del by remember { mutableStateOf(false) }
@@ -85,6 +86,7 @@ fun HistoryDetailScreen(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
+            IconBtn("edit", onClick = { onEdit(entry) }, size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Muted)
             IconBtn("trash", onClick = { del = true }, size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Faint)
         }
 
