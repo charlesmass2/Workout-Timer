@@ -153,9 +153,20 @@ class ActiveController(
         persist(); emit()
     }
 
+    /** Log reps for the current work step. */
     fun setReps(value: Int) {
         val cur = steps[idx]
         if (cur.kind != StepKind.WORK) return
+        applyReps(cur, value)
+    }
+
+    /** Log reps for an explicit work step (e.g. the set just finished, during rest). */
+    fun setRepsForWorkIndex(workIndex: Int, value: Int) {
+        val step = steps.firstOrNull { it.kind == StepKind.WORK && it.workIndex == workIndex } ?: return
+        applyReps(step, value)
+    }
+
+    private fun applyReps(cur: Step, value: Int) {
         val wi = cur.workIndex
         reps[wi] = value
         manual.add(wi)
