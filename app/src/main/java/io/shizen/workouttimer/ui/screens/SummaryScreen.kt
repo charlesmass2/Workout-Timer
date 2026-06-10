@@ -59,14 +59,15 @@ fun SummaryScreen(
     result: WorkoutResult,
     onSave: (WorkoutResult) -> Unit,
     onDiscard: () -> Unit,
+    isEdit: Boolean = false,
 ) {
     val reps = remember {
         mutableStateMapOf<Int, Int>().apply {
             result.sets.forEach { if (it.reps != null) put(it.workIndex, it.reps) }
         }
     }
-    var sat by remember { mutableStateOf<Int?>(null) }
-    var brt by remember { mutableStateOf<Int?>(null) }
+    var sat by remember { mutableStateOf(result.satisfaction) }
+    var brt by remember { mutableStateOf(result.breathless) }
 
     val groups = remember(result) {
         val map = LinkedHashMap<String, RepGroup>()
@@ -97,7 +98,7 @@ fun SummaryScreen(
             ) {
                 WtIcon("check", size = 30.dp, color = WT.Accent, strokeWidth = 2.6f)
             }
-            Text("Workout complete", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, modifier = Modifier.padding(top = 10.dp))
+            Text(if (isEdit) "Edit session" else "Workout complete", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, modifier = Modifier.padding(top = 10.dp))
             Text(result.workoutName, fontSize = 13.sp, color = WT.Muted, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 3.dp))
             Row(
                 modifier = Modifier.padding(top = 12.dp),
@@ -150,8 +151,8 @@ fun SummaryScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Btn("Discard", onClick = onDiscard, variant = BtnVariant.Ghost)
-            Btn("Save to history", onClick = { save() }, icon = "check", fillMaxWidth = true, modifier = Modifier.weight(1f))
+            Btn(if (isEdit) "Cancel" else "Discard", onClick = onDiscard, variant = BtnVariant.Ghost)
+            Btn(if (isEdit) "Save changes" else "Save to history", onClick = { save() }, icon = "check", fillMaxWidth = true, modifier = Modifier.weight(1f))
         }
     }
 }
