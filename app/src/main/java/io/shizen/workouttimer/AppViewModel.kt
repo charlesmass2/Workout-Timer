@@ -73,8 +73,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // One-shot navigation commands. A Channel (not a SharedFlow) retains each
     // command until the NavController collects it — even if it is sent before the
-    // collector starts. The buffer is bounded; `navigate` uses a suspending send,
-    // which backpressures instead of dropping if the buffer ever fills.
+    // collector starts. The buffer is bounded; if it ever filled, the send
+    // coroutine launched by `navigate` would suspend rather than drop a command.
     private val _nav = Channel<NavCmd>(Channel.BUFFERED)
     val nav: Flow<NavCmd> = _nav.receiveAsFlow()
 
