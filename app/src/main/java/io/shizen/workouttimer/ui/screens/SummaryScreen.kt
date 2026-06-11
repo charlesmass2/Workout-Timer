@@ -1,5 +1,6 @@
 package io.shizen.workouttimer.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -61,6 +62,8 @@ fun SummaryScreen(
     onDiscard: () -> Unit,
     isEdit: Boolean = false,
 ) {
+    // System back behaves like the visible Discard / Cancel action.
+    BackHandler { onDiscard() }
     val reps = remember {
         mutableStateMapOf<Int, Int>().apply {
             result.sets.forEach { if (it.reps != null) put(it.workIndex, it.reps) }
