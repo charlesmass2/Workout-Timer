@@ -30,6 +30,7 @@ sealed interface Screen {
     data object Active : Screen
     data class Summary(val result: WorkoutResult) : Screen
     data class Detail(val entry: WorkoutResult) : Screen
+    data class EditHistory(val entry: WorkoutResult) : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -163,6 +164,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── History ────────────────────────────────────────────
     fun openDetail(entry: WorkoutResult) { _screen.value = Screen.Detail(entry) }
+
+    fun editHistory(entry: WorkoutResult) { _screen.value = Screen.EditHistory(entry) }
+
+    /** Save edits to an existing history entry, keeping its place in the list. */
+    fun updateHistory(out: WorkoutResult) {
+        _history.value = _history.value.map { if (it.id == out.id) out else it }
+        repo.saveHistory(_history.value)
+        _screen.value = Screen.Detail(out)
+    }
 
     fun deleteHistory(id: String) {
         _history.value = _history.value.filterNot { it.id == id }

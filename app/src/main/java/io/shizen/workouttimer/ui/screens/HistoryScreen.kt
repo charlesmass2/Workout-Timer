@@ -60,6 +60,7 @@ fun HistoryScreen(
             if (history.isNotEmpty()) {
                 IconBtn(
                     "trash", onClick = { confirmClear = true },
+                    contentDescription = "Clear all history",
                     size = 38, iconSize = 19, bg = Color.Transparent, color = WT.Faint,
                 )
             }
@@ -186,6 +187,7 @@ private fun HistoryRow(
         }
         IconBtn(
             "trash", onClick = onDelete,
+            contentDescription = "Delete session",
             size = 36, iconSize = 17, bg = Color.Transparent, color = WT.Faint,
         )
     }
