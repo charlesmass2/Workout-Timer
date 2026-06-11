@@ -152,6 +152,7 @@ private fun WorkoutCard(
             }
             IconBtn(
                 "drag", onClick = { onMenu(w) },
+                contentDescription = "Workout options",
                 size = 36, iconSize = 20, bg = androidx.compose.ui.graphics.Color.Transparent,
                 color = WT.Faint,
             )
