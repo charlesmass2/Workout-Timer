@@ -64,8 +64,8 @@ fun ActiveScreen(
 ) {
     KeepScreenOn()
     var confirmEnd by remember { mutableStateOf(false) }
-    // System back asks to finish instead of silently leaving the live workout.
-    BackHandler { confirmEnd = true }
+    // System back asks to finish; while the dialog is open, let back dismiss it.
+    BackHandler(enabled = !confirmEnd) { confirmEnd = true }
 
     val steps = state.steps
     val cur = state.current

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -113,6 +114,8 @@ fun AppRoot(vm: AppViewModel) {
                         onSave = vm::saveWorkout,
                         onCancel = vm::cancelEditor,
                     )
+                } else {
+                    RecoverTo(navController, Routes.EDITOR)
                 }
             }
 
@@ -132,6 +135,9 @@ fun AppRoot(vm: AppViewModel) {
                         onToggleVibrate = vm::toggleVibrate,
                         onToggleSound = vm::toggleSound,
                     )
+                } else {
+                    // Session lost (e.g. process death): the resume prompt offers a restart.
+                    RecoverTo(navController, Routes.ACTIVE)
                 }
             }
 
@@ -143,6 +149,8 @@ fun AppRoot(vm: AppViewModel) {
                         onSave = vm::saveResult,
                         onDiscard = vm::discardResult,
                     )
+                } else {
+                    RecoverTo(navController, Routes.SUMMARY)
                 }
             }
 
@@ -158,6 +166,8 @@ fun AppRoot(vm: AppViewModel) {
                             navController.popBackStack()
                         },
                     )
+                } else {
+                    RecoverTo(navController, Routes.DETAIL) { vm.setTab(Tab.HISTORY) }
                 }
             }
 
@@ -170,6 +180,8 @@ fun AppRoot(vm: AppViewModel) {
                         onDiscard = { navController.popBackStack() },
                         isEdit = true,
                     )
+                } else {
+                    RecoverTo(navController, Routes.EDIT_HISTORY) { vm.setTab(Tab.HISTORY) }
                 }
             }
         }
@@ -184,6 +196,26 @@ fun AppRoot(vm: AppViewModel) {
                 onConfirm = vm::resumeSession,
                 onDismiss = vm::dismissResume,
             )
+        }
+    }
+}
+
+/**
+ * Recover from a destination whose in-memory state was lost (e.g. process death
+ * restored the back stack but not the ViewModel): return to the tabs root so the
+ * user never lands on a blank screen. Guarded by the current route so it can't
+ * fire during a normal exit transition.
+ */
+@Composable
+private fun RecoverTo(
+    navController: NavController,
+    expectedRoute: String,
+    beforePop: () -> Unit = {},
+) {
+    LaunchedEffect(Unit) {
+        if (navController.currentDestination?.route == expectedRoute) {
+            beforePop()
+            navController.popBackStack(Routes.TABS, inclusive = false)
         }
     }
 }
