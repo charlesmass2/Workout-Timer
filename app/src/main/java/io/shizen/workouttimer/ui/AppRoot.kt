@@ -46,6 +46,7 @@ import io.shizen.workouttimer.ui.screens.HistoryScreen
 import io.shizen.workouttimer.ui.screens.HomeScreen
 import io.shizen.workouttimer.ui.screens.SummaryScreen
 import io.shizen.workouttimer.ui.theme.WT
+import kotlinx.coroutines.delay
 
 @Composable
 fun AppRoot(vm: AppViewModel) {
@@ -226,8 +227,14 @@ private fun NavGraphBuilder.screen(route: String, content: @Composable () -> Uni
 /**
  * Recover from a destination whose in-memory state was lost (e.g. process death
  * restored the back stack but not the ViewModel): return to the tabs root so the
- * user never lands on a blank screen. Guarded by the current route so it can't
- * fire during a normal exit transition.
+ * user never lands on a blank screen.
+ *
+ * The state can also be transiently null during a legitimate transition — e.g.
+ * finishing a workout clears the active session just before the SUMMARY command
+ * is processed. A short settle delay lets any in-flight navigation land first,
+ * and the route guard then ensures we only pop if the destination is still the
+ * one whose state is missing. If recomposition brings the state back, this
+ * composable leaves the tree and the effect is cancelled before it fires.
  */
 @Composable
 private fun RecoverTo(
@@ -236,6 +243,7 @@ private fun RecoverTo(
     beforePop: () -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
+        delay(150)
         if (navController.currentDestination?.route == expectedRoute) {
             beforePop()
             navController.popBackStack(Routes.TABS, inclusive = false)

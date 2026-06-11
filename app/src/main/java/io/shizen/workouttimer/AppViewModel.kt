@@ -71,10 +71,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val _tab = MutableStateFlow(Tab.HOME)
     val tab: StateFlow<Tab> = _tab.asStateFlow()
 
-    // One-shot navigation commands. A Channel (not a SharedFlow) guarantees each
-    // command is retained until the NavController collects it — even if it is sent
-    // before the collector starts — so no navigation event can be silently dropped.
-    private val _nav = Channel<NavCmd>(Channel.UNLIMITED)
+    // One-shot navigation commands. A Channel (not a SharedFlow) retains each
+    // command until the NavController collects it — even if it is sent before the
+    // collector starts. The buffer is bounded; `navigate` uses a suspending send,
+    // which backpressures instead of dropping if the buffer ever fills.
+    private val _nav = Channel<NavCmd>(Channel.BUFFERED)
     val nav: Flow<NavCmd> = _nav.receiveAsFlow()
 
     // Data backing the secondary destinations.
@@ -107,7 +108,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun navigate(cmd: NavCmd) { _nav.trySend(cmd) }
+    // viewModelScope runs on Dispatchers.Main.immediate, so commands issued from
+    // the main thread are enqueued synchronously and their order is preserved.
+    private fun navigate(cmd: NavCmd) {
+        viewModelScope.launch { _nav.send(cmd) }
+    }
 
     // ── Tabs ───────────────────────────────────────────────
     fun setTab(tab: Tab) { _tab.value = tab }
