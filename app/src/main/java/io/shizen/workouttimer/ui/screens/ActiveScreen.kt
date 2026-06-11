@@ -1,5 +1,6 @@
 package io.shizen.workouttimer.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -62,6 +63,8 @@ fun ActiveScreen(
 ) {
     KeepScreenOn()
     var confirmEnd by remember { mutableStateOf(false) }
+    // System back asks to finish instead of silently leaving the live workout.
+    BackHandler { confirmEnd = true }
 
     val steps = state.steps
     val cur = state.current

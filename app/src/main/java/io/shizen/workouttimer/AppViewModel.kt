@@ -15,8 +15,11 @@ import io.shizen.workouttimer.data.uid
 import io.shizen.workouttimer.timer.ActiveController
 import io.shizen.workouttimer.timer.ActiveState
 import io.shizen.workouttimer.timer.Feedback
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -24,14 +27,32 @@ const val COUNTDOWN_SECONDS = 5
 
 enum class Tab { HOME, HISTORY }
 
-sealed interface Screen {
-    data object Tabs : Screen
-    data class Editor(val workout: Workout, val isNew: Boolean) : Screen
-    data object Active : Screen
-    data class Summary(val result: WorkoutResult) : Screen
-    data class Detail(val entry: WorkoutResult) : Screen
-    data class EditHistory(val entry: WorkoutResult) : Screen
+/** Navigation graph routes. */
+object Routes {
+    const val TABS = "tabs"
+    const val EDITOR = "editor"
+    const val ACTIVE = "active"
+    const val SUMMARY = "summary"
+    const val DETAIL = "detail"
+    const val EDIT_HISTORY = "edit_history"
 }
+
+/** One-shot navigation commands, executed by the NavController in AppRoot. */
+sealed interface NavCmd {
+    data class To(
+        val route: String,
+        val popUpToRoute: String? = null,
+        val inclusive: Boolean = false,
+    ) : NavCmd
+
+    data object Back : NavCmd
+
+    /** Pop the back stack until [route] is on top. */
+    data class PopTo(val route: String) : NavCmd
+}
+
+/** What the editor screen is editing. */
+data class EditorTarget(val workout: Workout, val isNew: Boolean)
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -50,8 +71,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val _tab = MutableStateFlow(Tab.HOME)
     val tab: StateFlow<Tab> = _tab.asStateFlow()
 
-    private val _screen = MutableStateFlow<Screen>(Screen.Tabs)
-    val screen: StateFlow<Screen> = _screen.asStateFlow()
+    private val _nav = MutableSharedFlow<NavCmd>(extraBufferCapacity = 16)
+    val nav: SharedFlow<NavCmd> = _nav.asSharedFlow()
+
+    // Data backing the secondary destinations.
+    private val _editing = MutableStateFlow<EditorTarget?>(null)
+    val editing: StateFlow<EditorTarget?> = _editing.asStateFlow()
+
+    private val _result = MutableStateFlow<WorkoutResult?>(null)
+    val result: StateFlow<WorkoutResult?> = _result.asStateFlow()
+
+    private val _detail = MutableStateFlow<WorkoutResult?>(null)
+    val detail: StateFlow<WorkoutResult?> = _detail.asStateFlow()
 
     private val _resumePrompt = MutableStateFlow(false)
     val resumePrompt: StateFlow<Boolean> = _resumePrompt.asStateFlow()
@@ -73,7 +104,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ── Navigation ─────────────────────────────────────────
+    private fun navigate(cmd: NavCmd) { _nav.tryEmit(cmd) }
+
+    // ── Tabs ───────────────────────────────────────────────
     fun setTab(tab: Tab) { _tab.value = tab }
 
     // ── Settings ───────────────────────────────────────────
@@ -90,7 +123,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val s = pendingSession ?: return
         attachController(s)
         _resumePrompt.value = false
-        _screen.value = Screen.Active
+        navigate(NavCmd.To(Routes.ACTIVE))
     }
 
     fun dismissResume() {
@@ -114,7 +147,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         )
         repo.saveSession(session)
         attachController(session)
-        _screen.value = Screen.Active
+        navigate(NavCmd.To(Routes.ACTIVE))
     }
 
     private fun attachController(session: Session) {
@@ -139,39 +172,42 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         controller?.detach()
         controller = null
         _activeState.value = null
-        _screen.value = Screen.Summary(result)
-    }
-
-    fun exitActive() {
-        controller?.detach()
-        controller = null
-        _activeState.value = null
-        repo.saveSession(null)
-        _screen.value = Screen.Tabs
+        _result.value = result
+        // The finished workout replaces the active screen on the back stack.
+        navigate(NavCmd.To(Routes.SUMMARY, popUpToRoute = Routes.ACTIVE, inclusive = true))
     }
 
     // ── Summary result ─────────────────────────────────────
     fun saveResult(out: WorkoutResult) {
         _history.value = listOf(out) + _history.value
         repo.saveHistory(_history.value)
+        _result.value = null
         _tab.value = Tab.HISTORY
-        _screen.value = Screen.Tabs
+        navigate(NavCmd.PopTo(Routes.TABS))
     }
 
     fun discardResult() {
-        _screen.value = Screen.Tabs
+        _result.value = null
+        navigate(NavCmd.PopTo(Routes.TABS))
     }
 
     // ── History ────────────────────────────────────────────
-    fun openDetail(entry: WorkoutResult) { _screen.value = Screen.Detail(entry) }
+    fun openDetail(entry: WorkoutResult) {
+        _detail.value = entry
+        navigate(NavCmd.To(Routes.DETAIL))
+    }
 
-    fun editHistory(entry: WorkoutResult) { _screen.value = Screen.EditHistory(entry) }
+    fun editHistory(entry: WorkoutResult) {
+        _detail.value = entry
+        navigate(NavCmd.To(Routes.EDIT_HISTORY))
+    }
 
     /** Save edits to an existing history entry, keeping its place in the list. */
     fun updateHistory(out: WorkoutResult) {
         _history.value = _history.value.map { if (it.id == out.id) out else it }
         repo.saveHistory(_history.value)
-        _screen.value = Screen.Detail(out)
+        _detail.value = out
+        navigate(NavCmd.Back)
     }
 
     fun deleteHistory(id: String) {
@@ -182,11 +218,6 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun clearHistory() {
         _history.value = emptyList()
         repo.saveHistory(_history.value)
-    }
-
-    fun backToHistory() {
-        _tab.value = Tab.HISTORY
-        _screen.value = Screen.Tabs
     }
 
     // ── Workout library editing ────────────────────────────
@@ -201,12 +232,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 )
             ),
         )
-        _screen.value = Screen.Editor(w, isNew = true)
+        _editing.value = EditorTarget(w, isNew = true)
+        navigate(NavCmd.To(Routes.EDITOR))
     }
 
     fun editWorkout(id: String) {
         val w = _workouts.value.find { it.id == id } ?: return
-        _screen.value = Screen.Editor(w, isNew = false)
+        _editing.value = EditorTarget(w, isNew = false)
+        navigate(NavCmd.To(Routes.EDITOR))
     }
 
     fun duplicateWorkout(id: String) {
@@ -244,10 +277,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         _workouts.value = if (idx < 0) list + fixed
         else list.toMutableList().apply { this[idx] = fixed }
         repo.saveWorkouts(_workouts.value)
-        _screen.value = Screen.Tabs
+        _editing.value = null
+        navigate(NavCmd.Back)
     }
 
-    fun cancelEditor() { _screen.value = Screen.Tabs }
+    fun cancelEditor() {
+        _editing.value = null
+        navigate(NavCmd.Back)
+    }
 
     override fun onCleared() {
         controller?.detach()
