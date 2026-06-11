@@ -81,7 +81,7 @@ fun EditorScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            IconBtn("back", onClick = onCancel, size = 40, iconSize = 22, bg = Color.Transparent)
+            IconBtn("back", onClick = onCancel, contentDescription = "Back", size = 40, iconSize = 22, bg = Color.Transparent)
             Text(
                 if (isNew) "New workout" else "Edit workout",
                 modifier = Modifier.weight(1f),
@@ -221,7 +221,7 @@ private fun SupersetEditor(
             )
             if (multi) Pill("SUPERSET", tone = PillTone.Accent)
             if (canRemove) {
-                IconBtn("trash", onClick = onRemove, size = 34, iconSize = 17, bg = Color.Transparent, color = WT.Faint)
+                IconBtn("trash", onClick = onRemove, contentDescription = "Remove block", size = 34, iconSize = 17, bg = Color.Transparent, color = WT.Faint)
             }
         }
 
@@ -301,7 +301,7 @@ private fun ExerciseRow(
         )
         Stepper(ex.duration, onValueChange = { onChange(ex.copy(duration = it)) }, step = 5, min = 5, max = 900, suffix = "s", width = 104)
         if (canRemove) {
-            IconBtn("x", onClick = onRemove, size = 32, iconSize = 16, bg = Color.Transparent, color = WT.Faint)
+            IconBtn("x", onClick = onRemove, contentDescription = "Remove exercise", size = 32, iconSize = 16, bg = Color.Transparent, color = WT.Faint)
         }
     }
 }

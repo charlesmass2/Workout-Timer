@@ -69,7 +69,7 @@ fun HistoryDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            IconBtn("back", onClick = onBack, size = 40, iconSize = 22, bg = Color.Transparent)
+            IconBtn("back", onClick = onBack, contentDescription = "Back", size = 40, iconSize = 22, bg = Color.Transparent)
             Column(Modifier.weight(1f)) {
                 Text(
                     entry.workoutName,
@@ -86,8 +86,8 @@ fun HistoryDetailScreen(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            IconBtn("edit", onClick = { onEdit(entry) }, size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Muted)
-            IconBtn("trash", onClick = { del = true }, size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Faint)
+            IconBtn("edit", onClick = { onEdit(entry) }, contentDescription = "Edit session", size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Muted)
+            IconBtn("trash", onClick = { del = true }, contentDescription = "Delete session", size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Faint)
         }
 
         LazyColumn(

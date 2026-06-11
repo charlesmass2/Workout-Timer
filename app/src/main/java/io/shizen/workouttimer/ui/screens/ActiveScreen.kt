@@ -90,7 +90,7 @@ fun ActiveScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            IconBtn("chevD", onClick = { confirmEnd = true }, size = 38, iconSize = 22, bg = Color.Transparent, color = WT.Muted)
+            IconBtn("chevD", onClick = { confirmEnd = true }, contentDescription = "End workout", size = 38, iconSize = 22, bg = Color.Transparent, color = WT.Muted)
             Text(
                 state.workoutName,
                 modifier = Modifier.weight(1f),
@@ -243,12 +243,14 @@ fun ActiveScreen(
                 IconBtn(
                     if (settings.vibrate) "vibrate" else "vibrateOff",
                     onClick = onToggleVibrate,
+                    contentDescription = if (settings.vibrate) "Vibration on, tap to turn off" else "Vibration off, tap to turn on",
                     active = settings.vibrate,
                     iconSize = 20,
                 )
                 IconBtn(
                     if (settings.sound) "speaker" else "speakerOff",
                     onClick = onToggleSound,
+                    contentDescription = if (settings.sound) "Sound on, tap to turn off" else "Sound off, tap to turn on",
                     active = settings.sound,
                     iconSize = 20,
                 )
