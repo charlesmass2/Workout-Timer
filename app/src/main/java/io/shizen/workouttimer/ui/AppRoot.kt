@@ -127,6 +127,7 @@ fun AppRoot(vm: AppViewModel) {
                         onTogglePause = controller::togglePause,
                         onAdvance = controller::advance,
                         onSetReps = controller::setReps,
+                        onSetRepsForWork = controller::setRepsForWorkIndex,
                         onFinishNow = controller::finishNow,
                         onToggleVibrate = vm::toggleVibrate,
                         onToggleSound = vm::toggleSound,
