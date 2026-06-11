@@ -55,7 +55,7 @@ fun AppRoot(vm: AppViewModel) {
     val detail by vm.detail.collectAsState()
 
     // Execute the ViewModel's one-shot navigation commands on the NavController.
-    LaunchedEffect(navController) {
+    LaunchedEffect(navController, vm) {
         vm.nav.collect { cmd ->
             when (cmd) {
                 is NavCmd.To -> navController.navigate(cmd.route) {

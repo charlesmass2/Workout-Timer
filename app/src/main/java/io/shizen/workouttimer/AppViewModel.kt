@@ -15,12 +15,12 @@ import io.shizen.workouttimer.data.uid
 import io.shizen.workouttimer.timer.ActiveController
 import io.shizen.workouttimer.timer.ActiveState
 import io.shizen.workouttimer.timer.Feedback
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 const val COUNTDOWN_SECONDS = 5
@@ -71,8 +71,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val _tab = MutableStateFlow(Tab.HOME)
     val tab: StateFlow<Tab> = _tab.asStateFlow()
 
-    private val _nav = MutableSharedFlow<NavCmd>(extraBufferCapacity = 16)
-    val nav: SharedFlow<NavCmd> = _nav.asSharedFlow()
+    // One-shot navigation commands. A Channel (not a SharedFlow) guarantees each
+    // command is retained until the NavController collects it — even if it is sent
+    // before the collector starts — so no navigation event can be silently dropped.
+    private val _nav = Channel<NavCmd>(Channel.UNLIMITED)
+    val nav: Flow<NavCmd> = _nav.receiveAsFlow()
 
     // Data backing the secondary destinations.
     private val _editing = MutableStateFlow<EditorTarget?>(null)
@@ -104,7 +107,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun navigate(cmd: NavCmd) { _nav.tryEmit(cmd) }
+    private fun navigate(cmd: NavCmd) { _nav.trySend(cmd) }
 
     // ── Tabs ───────────────────────────────────────────────
     fun setTab(tab: Tab) { _tab.value = tab }
