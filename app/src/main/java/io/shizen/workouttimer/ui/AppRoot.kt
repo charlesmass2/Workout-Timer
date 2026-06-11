@@ -1,6 +1,10 @@
 package io.shizen.workouttimer.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,9 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -74,12 +80,19 @@ fun AppRoot(vm: AppViewModel) {
             .background(WT.Bg)
             .windowInsetsPadding(WindowInsets.safeDrawing),
     ) {
+        // Native "push" transitions: the new screen slides in from the right while
+        // the old one shifts left in parallax; reversed when popping the stack.
+        val slideSpec = tween<IntOffset>(300, easing = FastOutSlowInEasing)
         NavHost(
             navController = navController,
             startDestination = Routes.TABS,
             modifier = Modifier.fillMaxSize(),
+            enterTransition = { slideInHorizontally(slideSpec) { it } },
+            exitTransition = { slideOutHorizontally(slideSpec) { -it / 3 } },
+            popEnterTransition = { slideInHorizontally(slideSpec) { -it / 3 } },
+            popExitTransition = { slideOutHorizontally(slideSpec) { it } },
         ) {
-            composable(Routes.TABS) {
+            screen(Routes.TABS) {
                 // On the History tab, system back returns to the Workouts tab first.
                 BackHandler(enabled = tab == Tab.HISTORY) { vm.setTab(Tab.HOME) }
                 Column(Modifier.fillMaxSize()) {
@@ -105,7 +118,7 @@ fun AppRoot(vm: AppViewModel) {
                 }
             }
 
-            composable(Routes.EDITOR) {
+            screen(Routes.EDITOR) {
                 val target = editing
                 if (target != null) {
                     EditorScreen(
@@ -119,7 +132,7 @@ fun AppRoot(vm: AppViewModel) {
                 }
             }
 
-            composable(Routes.ACTIVE) {
+            screen(Routes.ACTIVE) {
                 val st = activeState
                 val controller = vm.controller
                 if (st != null && controller != null) {
@@ -141,7 +154,7 @@ fun AppRoot(vm: AppViewModel) {
                 }
             }
 
-            composable(Routes.SUMMARY) {
+            screen(Routes.SUMMARY) {
                 val r = result
                 if (r != null) {
                     SummaryScreen(
@@ -154,7 +167,7 @@ fun AppRoot(vm: AppViewModel) {
                 }
             }
 
-            composable(Routes.DETAIL) {
+            screen(Routes.DETAIL) {
                 val entry = detail
                 if (entry != null) {
                     HistoryDetailScreen(
@@ -171,7 +184,7 @@ fun AppRoot(vm: AppViewModel) {
                 }
             }
 
-            composable(Routes.EDIT_HISTORY) {
+            screen(Routes.EDIT_HISTORY) {
                 val entry = detail
                 if (entry != null) {
                     SummaryScreen(
@@ -197,6 +210,16 @@ fun AppRoot(vm: AppViewModel) {
                 onDismiss = vm::dismissResume,
             )
         }
+    }
+}
+
+/**
+ * A destination wrapped in an opaque background, so overlapping screens don't
+ * show through each other during slide transitions.
+ */
+private fun NavGraphBuilder.screen(route: String, content: @Composable () -> Unit) {
+    composable(route) {
+        Box(Modifier.fillMaxSize().background(WT.Bg)) { content() }
     }
 }
 
