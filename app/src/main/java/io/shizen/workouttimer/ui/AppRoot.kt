@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.shizen.workouttimer.AppViewModel
 import io.shizen.workouttimer.NavCmd
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.Routes
 import io.shizen.workouttimer.Tab
 import io.shizen.workouttimer.ui.components.ConfirmDialog
@@ -202,10 +204,10 @@ fun AppRoot(vm: AppViewModel) {
 
         if (resumePrompt) {
             ConfirmDialog(
-                title = "Resume workout?",
-                body = vm.resumeWorkoutName?.let { "You have \"$it\" in progress." }
-                    ?: "You have a workout in progress.",
-                confirmLabel = "Resume",
+                title = stringResource(R.string.resume_dialog_title),
+                body = vm.resumeWorkoutName?.let { stringResource(R.string.resume_dialog_body_named, it) }
+                    ?: stringResource(R.string.resume_dialog_body),
+                confirmLabel = stringResource(R.string.resume_dialog_confirm),
                 danger = false,
                 onConfirm = vm::resumeSession,
                 onDismiss = vm::dismissResume,
@@ -253,7 +255,10 @@ private fun RecoverTo(
 
 @Composable
 private fun BottomNav(tab: Tab, onTab: (Tab) -> Unit) {
-    val items = listOf(Tab.HOME to ("dumbbell" to "Workouts"), Tab.HISTORY to ("history" to "History"))
+    val items = listOf(
+        Tab.HOME to ("dumbbell" to stringResource(R.string.tab_workouts)),
+        Tab.HISTORY to ("history" to stringResource(R.string.tab_history)),
+    )
     Column {
         Box(Modifier.fillMaxWidth().height(1.dp).background(WT.Line))
         androidx.compose.foundation.layout.Row(

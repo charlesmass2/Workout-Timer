@@ -1,5 +1,7 @@
 package io.shizen.workouttimer.data
 
+import androidx.annotation.StringRes
+import io.shizen.workouttimer.R
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -118,17 +120,17 @@ data class Session(
 
 // ── Rating scales ───────────────────────────────────────────
 
-data class Rating(val key: Int, val label: String)
+data class Rating(val key: Int, @StringRes val labelRes: Int)
 
 val SATISFACTION = listOf(
-    Rating(1, "Poor"),
-    Rating(2, "Okay"),
-    Rating(3, "Good"),
-    Rating(4, "Great"),
+    Rating(1, R.string.rating_poor),
+    Rating(2, R.string.rating_okay),
+    Rating(3, R.string.rating_good),
+    Rating(4, R.string.rating_great),
 )
 val BREATHLESS = listOf(
-    Rating(1, "Easy"),
-    Rating(2, "Moderate"),
-    Rating(3, "Hard"),
-    Rating(4, "Maxed"),
+    Rating(1, R.string.rating_easy),
+    Rating(2, R.string.rating_moderate),
+    Rating(3, R.string.rating_hard),
+    Rating(4, R.string.rating_maxed),
 )

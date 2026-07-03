@@ -41,5 +41,6 @@ fun fmtTime(ts: Long): String =
 fun fmtDayKey(ts: Long): String =
     SimpleDateFormat("EEEE, MMMM d, yyyy", EN).format(Date(ts))
 
+/** Signed compact duration: "+12m 30s" / "-45s". */
 fun signedLong(deltaSec: Int): String =
-    (if (deltaSec >= 0) "+" else "-") + fmtLong(abs(deltaSec)) + " vs plan"
+    (if (deltaSec >= 0) "+" else "-") + fmtLong(abs(deltaSec))

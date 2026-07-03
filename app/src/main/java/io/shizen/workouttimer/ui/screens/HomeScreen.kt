@@ -23,10 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.Workout
 import io.shizen.workouttimer.data.estimateDuration
 import io.shizen.workouttimer.data.fmtLong
@@ -55,7 +58,7 @@ fun HomeScreen(
     var confirmDel by remember { mutableStateOf<Workout?>(null) }
 
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader(eyebrow = "Workouts", title = "Your library")
+        ScreenHeader(eyebrow = stringResource(R.string.home_eyebrow), title = stringResource(R.string.home_title))
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -82,7 +85,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         WtIcon("add", size = 20.dp, color = WT.Muted)
-                        Text("New workout", color = WT.Muted, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.common_new_workout), color = WT.Muted, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -93,10 +96,10 @@ fun HomeScreen(
     if (current != null) {
         WtBottomSheet(onDismiss = { menu = null }, title = current.name) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                MenuRow("edit", "Edit workout", onClick = { onEdit(current.id); menu = null })
-                MenuRow("copy", "Duplicate", onClick = { onDuplicate(current.id); menu = null })
+                MenuRow("edit", stringResource(R.string.common_edit_workout), onClick = { onEdit(current.id); menu = null })
+                MenuRow("copy", stringResource(R.string.home_menu_duplicate), onClick = { onDuplicate(current.id); menu = null })
                 if (workouts.size > 1) {
-                    MenuRow("trash", "Delete", danger = true, onClick = { confirmDel = current; menu = null })
+                    MenuRow("trash", stringResource(R.string.common_delete), danger = true, onClick = { confirmDel = current; menu = null })
                 }
             }
         }
@@ -105,9 +108,9 @@ fun HomeScreen(
     val del = confirmDel
     if (del != null) {
         ConfirmDialog(
-            title = "Delete workout?",
-            body = "\"${del.name}\" will be removed. History is kept.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.home_delete_dialog_title),
+            body = stringResource(R.string.home_delete_dialog_body, del.name),
+            confirmLabel = stringResource(R.string.common_delete),
             danger = true,
             onConfirm = { onDelete(del.id); confirmDel = null },
             onDismiss = { confirmDel = null },
@@ -146,13 +149,13 @@ private fun WorkoutCard(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     StatChip("clock", fmtLong(dur))
-                    StatChip("layers", "${w.supersets.size} blocks")
-                    StatChip("dumbbell", "$sets sets")
+                    StatChip("layers", pluralStringResource(R.plurals.blocks_count, w.supersets.size, w.supersets.size))
+                    StatChip("dumbbell", pluralStringResource(R.plurals.sets_count, sets, sets))
                 }
             }
             IconBtn(
                 "drag", onClick = { onMenu(w) },
-                contentDescription = "Workout options",
+                contentDescription = stringResource(R.string.home_workout_options),
                 size = 36, iconSize = 20, bg = androidx.compose.ui.graphics.Color.Transparent,
                 color = WT.Faint,
             )
@@ -187,7 +190,7 @@ private fun WorkoutCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        "×${ss.sets}",
+                        stringResource(R.string.home_sets_multiplier, ss.sets),
                         fontFamily = WtFonts.Mono,
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -198,7 +201,7 @@ private fun WorkoutCard(
         }
 
         Btn(
-            "Start workout",
+            stringResource(R.string.home_start_workout),
             onClick = { onStart(w) },
             icon = "play",
             size = BtnSize.Md,

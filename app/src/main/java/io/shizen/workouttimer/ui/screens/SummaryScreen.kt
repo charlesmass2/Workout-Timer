@@ -33,12 +33,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.BREATHLESS
 import io.shizen.workouttimer.data.Rating
 import io.shizen.workouttimer.data.SATISFACTION
@@ -48,6 +51,7 @@ import io.shizen.workouttimer.data.fmtDate
 import io.shizen.workouttimer.data.fmtLong
 import io.shizen.workouttimer.ui.components.Btn
 import io.shizen.workouttimer.ui.components.BtnVariant
+import io.shizen.workouttimer.ui.components.ConfirmDialog
 import io.shizen.workouttimer.ui.components.WtIcon
 import io.shizen.workouttimer.ui.components.pressScale
 import io.shizen.workouttimer.ui.theme.WT
@@ -62,8 +66,15 @@ fun SummaryScreen(
     onDiscard: () -> Unit,
     isEdit: Boolean = false,
 ) {
+    // Discarding a finished workout loses it forever, so ask first; cancelling an
+    // edit is harmless and goes straight through.
+    var confirmDiscard by remember { mutableStateOf(false) }
+    fun requestDiscard() {
+        if (isEdit) onDiscard() else confirmDiscard = true
+    }
     // System back behaves like the visible Discard / Cancel action.
-    BackHandler { onDiscard() }
+    // While the dialog is open, let back dismiss it.
+    BackHandler(enabled = !confirmDiscard) { requestDiscard() }
     val reps = remember {
         mutableStateMapOf<Int, Int>().apply {
             result.sets.forEach { if (it.reps != null) put(it.workIndex, it.reps) }
@@ -101,15 +112,15 @@ fun SummaryScreen(
             ) {
                 WtIcon("check", size = 30.dp, color = WT.Accent, strokeWidth = 2.6f)
             }
-            Text(if (isEdit) "Edit session" else "Workout complete", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, modifier = Modifier.padding(top = 10.dp))
+            Text(stringResource(if (isEdit) R.string.common_edit_session else R.string.summary_title), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, modifier = Modifier.padding(top = 10.dp))
             Text(result.workoutName, fontSize = 13.sp, color = WT.Muted, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 3.dp))
             Row(
                 modifier = Modifier.padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(18.dp),
             ) {
-                SumStat("Time", fmtLong(result.totalElapsed))
-                SumStat("Date", fmtDate(result.endedAt))
-                SumStat("Sets", "${result.sets.size}")
+                SumStat(stringResource(R.string.summary_stat_time), fmtLong(result.totalElapsed))
+                SumStat(stringResource(R.string.summary_stat_date), fmtDate(result.endedAt))
+                SumStat(stringResource(R.string.summary_stat_sets), "${result.sets.size}")
             }
         }
 
@@ -118,7 +129,7 @@ fun SummaryScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { SectionLabel("How did it feel?") }
+            item { SectionLabel(stringResource(R.string.summary_how_feel)) }
             item {
                 Column(
                     Modifier
@@ -130,17 +141,17 @@ fun SummaryScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Column {
-                        Text("Satisfaction", fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = WT.Muted, modifier = Modifier.padding(bottom = 8.dp))
+                        Text(stringResource(R.string.common_satisfaction), fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = WT.Muted, modifier = Modifier.padding(bottom = 8.dp))
                         RatingPicker(SATISFACTION, sat, { sat = it }, WT.Accent)
                     }
                     Column {
-                        Text("Breathlessness", fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = WT.Muted, modifier = Modifier.padding(bottom = 8.dp))
+                        Text(stringResource(R.string.common_breathlessness), fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = WT.Muted, modifier = Modifier.padding(bottom = 8.dp))
                         RatingPicker(BREATHLESS, brt, { brt = it }, WT.Rest)
                     }
                 }
             }
 
-            item { SectionLabel("Log your reps", sub = "optional — tap a number, or use \"Set all\"") }
+            item { SectionLabel(stringResource(R.string.summary_log_reps), sub = stringResource(R.string.summary_log_reps_sub)) }
             groups.forEach { g ->
                 item { RepGroupCard(g, reps) }
             }
@@ -154,9 +165,20 @@ fun SummaryScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Btn(if (isEdit) "Cancel" else "Discard", onClick = onDiscard, variant = BtnVariant.Ghost)
-            Btn(if (isEdit) "Save changes" else "Save to history", onClick = { save() }, icon = "check", fillMaxWidth = true, modifier = Modifier.weight(1f))
+            Btn(stringResource(if (isEdit) R.string.common_cancel else R.string.summary_discard), onClick = { requestDiscard() }, variant = BtnVariant.Ghost)
+            Btn(stringResource(if (isEdit) R.string.summary_save_changes else R.string.summary_save_to_history), onClick = { save() }, icon = "check", fillMaxWidth = true, modifier = Modifier.weight(1f))
         }
+    }
+
+    if (confirmDiscard) {
+        ConfirmDialog(
+            title = stringResource(R.string.summary_discard_dialog_title),
+            body = stringResource(R.string.summary_discard_dialog_body),
+            confirmLabel = stringResource(R.string.summary_discard),
+            danger = true,
+            onConfirm = { confirmDiscard = false; onDiscard() },
+            onDismiss = { confirmDiscard = false },
+        )
     }
 }
 
@@ -199,7 +221,7 @@ private fun RatingPicker(options: List<Rating>, value: Int?, onChange: (Int) -> 
                     }
                 }
                 Spacer(Modifier.height(5.dp))
-                Text(o.label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (on) color else WT.Muted)
+                Text(stringResource(o.labelRes), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (on) color else WT.Muted)
             }
         }
     }
@@ -223,7 +245,14 @@ private fun RepGroupCard(group: RepGroup, reps: androidx.compose.runtime.snapsho
         ) {
             Column(Modifier.weight(1f)) {
                 Text(group.exerciseName, fontSize = 15.5.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text)
-                Text("${group.supersetName} · ${group.sets.size} sets", fontSize = 11.5.sp, color = WT.Faint, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(
+                        R.string.summary_group_sub,
+                        group.supersetName,
+                        pluralStringResource(R.plurals.sets_count, group.sets.size, group.sets.size),
+                    ),
+                    fontSize = 11.5.sp, color = WT.Faint, fontWeight = FontWeight.SemiBold,
+                )
             }
             // Set-all control
             Row(
@@ -247,7 +276,7 @@ private fun RepGroupCard(group: RepGroup, reps: androidx.compose.runtime.snapsho
                     width = 34.dp,
                     fontSize = 15.sp,
                 )
-                Text("SET ALL", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = WT.Accent)
+                Text(stringResource(R.string.summary_set_all), fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = WT.Accent)
             }
         }
 
@@ -282,7 +311,7 @@ private fun RepCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Text("SET ${s.setNumber}", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = WT.Faint, fontFamily = WtFonts.Mono)
+        Text(stringResource(R.string.summary_set_n, s.setNumber), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = WT.Faint, fontFamily = WtFonts.Mono)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             MiniBtn("−") {
                 val cur = reps[s.workIndex] ?: 0

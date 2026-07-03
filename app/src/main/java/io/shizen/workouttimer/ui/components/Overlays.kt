@@ -22,7 +22,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.ui.theme.WT
 import io.shizen.workouttimer.ui.theme.WtFonts
 
@@ -128,7 +130,7 @@ fun ConfirmDialog(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Btn(
-                    "Cancel",
+                    stringResource(R.string.common_cancel),
                     onClick = onDismiss,
                     variant = BtnVariant.Ghost,
                     fillMaxWidth = true,
