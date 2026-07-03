@@ -378,6 +378,9 @@ private fun RestSetColumn(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
         )
+        if (step != null) {
+            SetDots(step.totalSets, step.setNumber)
+        }
         Text(
             if (step != null) "SET ${step.setNumber} / ${step.totalSets}" else "SET — / —",
             fontSize = 12.sp,
