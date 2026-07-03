@@ -48,6 +48,7 @@ import io.shizen.workouttimer.data.fmtDate
 import io.shizen.workouttimer.data.fmtLong
 import io.shizen.workouttimer.ui.components.Btn
 import io.shizen.workouttimer.ui.components.BtnVariant
+import io.shizen.workouttimer.ui.components.ConfirmDialog
 import io.shizen.workouttimer.ui.components.WtIcon
 import io.shizen.workouttimer.ui.components.pressScale
 import io.shizen.workouttimer.ui.theme.WT
@@ -62,8 +63,15 @@ fun SummaryScreen(
     onDiscard: () -> Unit,
     isEdit: Boolean = false,
 ) {
+    // Discarding a finished workout loses it forever, so ask first; cancelling an
+    // edit is harmless and goes straight through.
+    var confirmDiscard by remember { mutableStateOf(false) }
+    fun requestDiscard() {
+        if (isEdit) onDiscard() else confirmDiscard = true
+    }
     // System back behaves like the visible Discard / Cancel action.
-    BackHandler { onDiscard() }
+    // While the dialog is open, let back dismiss it.
+    BackHandler(enabled = !confirmDiscard) { requestDiscard() }
     val reps = remember {
         mutableStateMapOf<Int, Int>().apply {
             result.sets.forEach { if (it.reps != null) put(it.workIndex, it.reps) }
@@ -154,9 +162,20 @@ fun SummaryScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Btn(if (isEdit) "Cancel" else "Discard", onClick = onDiscard, variant = BtnVariant.Ghost)
+            Btn(if (isEdit) "Cancel" else "Discard", onClick = { requestDiscard() }, variant = BtnVariant.Ghost)
             Btn(if (isEdit) "Save changes" else "Save to history", onClick = { save() }, icon = "check", fillMaxWidth = true, modifier = Modifier.weight(1f))
         }
+    }
+
+    if (confirmDiscard) {
+        ConfirmDialog(
+            title = "Discard workout?",
+            body = "This session won't be saved to your history. This can't be undone.",
+            confirmLabel = "Discard",
+            danger = true,
+            onConfirm = { confirmDiscard = false; onDiscard() },
+            onDismiss = { confirmDiscard = false },
+        )
     }
 }
 
