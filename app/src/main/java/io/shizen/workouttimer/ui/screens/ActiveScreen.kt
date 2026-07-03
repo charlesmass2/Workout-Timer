@@ -173,29 +173,27 @@ fun ActiveScreen(
                         )
                     }
                     StepKind.REST -> {
-                        val next = if (cur.restType == RestType.SUPERSET) cur.nextSuperset else cur.nextExercise
                         val nextWork = nextWorkStep(steps, state.idx)
                         val prevWork = prevWorkStep(steps, state.idx)
                         Text("Catch your breath", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
-                        Text("Next up: $next", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text, textAlign = TextAlign.Center)
-                        if (nextWork != null) {
-                            Spacer(Modifier.height(16.dp))
-                            SetDots(nextWork.totalSets, nextWork.setNumber)
-                            Spacer(Modifier.height(10.dp))
-                            Text(
-                                "SET ${nextWork.setNumber} / ${nextWork.totalSets}",
-                                fontSize = 12.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = WT.Muted,
-                                fontFamily = WtFonts.Mono,
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            RestSetColumn(
+                                role = "LAST SET",
+                                step = prevWork,
+                                reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
+                                onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                                modifier = Modifier.weight(1f),
                             )
-                        }
-                        if (prevWork != null) {
-                            Spacer(Modifier.height(16.dp))
-                            RepsInput(
-                                label = "REPS · ${prevWork.exerciseName}",
-                                value = state.reps[prevWork.workIndex] ?: 0,
-                                onValueChange = { onSetRepsForWork(prevWork.workIndex, it) },
+                            RestSetColumn(
+                                role = "NEXT UP",
+                                step = nextWork,
+                                reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
+                                onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -348,6 +346,50 @@ private fun RepsInput(label: String, value: Int, onValueChange: (Int) -> Unit) {
     ) {
         Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
         Stepper(value = value, onValueChange = onValueChange, min = 0, max = 999, width = 120)
+    }
+}
+
+/** One column of the rest layout: the previous or upcoming set, with its set number and reps. */
+@Composable
+private fun RestSetColumn(
+    role: String,
+    step: Step?,
+    reps: Int,
+    onRepsChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(WT.Surface)
+            .border(1.dp, WT.Line, RoundedCornerShape(14.dp))
+            .padding(horizontal = 10.dp, vertical = 12.dp)
+            .alpha(if (step != null) 1f else 0.35f),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(role, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Faint)
+        Text(
+            step?.exerciseName ?: "—",
+            fontSize = 13.5.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = WT.Text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            if (step != null) "SET ${step.setNumber} / ${step.totalSets}" else "SET — / —",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = WT.Muted,
+            fontFamily = WtFonts.Mono,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text("REPS", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
+        if (step != null) {
+            Stepper(value = reps, onValueChange = onRepsChange, min = 0, max = 999, width = 116)
+        }
     }
 }
 
