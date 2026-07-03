@@ -22,10 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.SATISFACTION
 import io.shizen.workouttimer.data.WorkoutResult
 import io.shizen.workouttimer.data.fmtDayKey
@@ -56,11 +59,11 @@ fun HistoryScreen(
     sorted.forEach { groups.getOrPut(fmtDayKey(it.endedAt)) { mutableListOf() }.add(it) }
 
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader(eyebrow = "History", title = "Your sessions") {
+        ScreenHeader(eyebrow = stringResource(R.string.history_eyebrow), title = stringResource(R.string.history_title)) {
             if (history.isNotEmpty()) {
                 IconBtn(
                     "trash", onClick = { confirmClear = true },
-                    contentDescription = "Clear all history",
+                    contentDescription = stringResource(R.string.history_clear_all_cd),
                     size = 38, iconSize = 19, bg = Color.Transparent, color = WT.Faint,
                 )
             }
@@ -74,14 +77,14 @@ fun HistoryScreen(
             ) {
                 WtIcon("history", size = 40.dp, color = WT.Surface2)
                 Text(
-                    "No sessions yet",
+                    stringResource(R.string.history_empty_title),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = WT.Muted,
                     modifier = Modifier.padding(top = 14.dp),
                 )
                 Text(
-                    "Complete a workout and it lands here.",
+                    stringResource(R.string.history_empty_body),
                     fontSize = 13.sp,
                     color = WT.Faint,
                     modifier = Modifier.padding(top = 4.dp),
@@ -117,9 +120,9 @@ fun HistoryScreen(
 
     if (confirmClear) {
         ConfirmDialog(
-            title = "Clear all history?",
-            body = "Every saved session will be permanently removed.",
-            confirmLabel = "Clear all",
+            title = stringResource(R.string.history_clear_dialog_title),
+            body = stringResource(R.string.history_clear_dialog_body),
+            confirmLabel = stringResource(R.string.history_clear_dialog_confirm),
             danger = true,
             onConfirm = { onClear(); confirmClear = false },
             onDismiss = { confirmClear = false },
@@ -128,9 +131,9 @@ fun HistoryScreen(
     val del = delEntry
     if (del != null) {
         ConfirmDialog(
-            title = "Delete this session?",
-            body = "${del.workoutName} · ${fmtDayKey(del.endedAt)} will be removed.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.history_delete_dialog_title),
+            body = stringResource(R.string.history_delete_dialog_body, del.workoutName, fmtDayKey(del.endedAt)),
+            confirmLabel = stringResource(R.string.common_delete),
             danger = true,
             onConfirm = { onDelete(del.id); delEntry = null },
             onDismiss = { delEntry = null },
@@ -171,8 +174,8 @@ private fun HistoryRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 StatChip("clock", fmtLong(h.totalElapsed))
-                StatChip("dumbbell", "${h.sets.size} sets")
-                if (totalReps > 0) StatChip("flame", "$totalReps reps")
+                StatChip("dumbbell", pluralStringResource(R.plurals.sets_count, h.sets.size, h.sets.size))
+                if (totalReps > 0) StatChip("flame", pluralStringResource(R.plurals.reps_count, totalReps, totalReps))
             }
         }
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -183,11 +186,11 @@ private fun HistoryRow(
                 fontWeight = FontWeight.Bold,
                 color = WT.Muted,
             )
-            if (sat != null) Pill(sat.label, tone = PillTone.Accent)
+            if (sat != null) Pill(stringResource(sat.labelRes), tone = PillTone.Accent)
         }
         IconBtn(
             "trash", onClick = onDelete,
-            contentDescription = "Delete session",
+            contentDescription = stringResource(R.string.common_delete_session),
             size = 36, iconSize = 17, bg = Color.Transparent, color = WT.Faint,
         )
     }

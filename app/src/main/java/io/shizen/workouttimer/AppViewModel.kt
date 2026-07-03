@@ -230,11 +230,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Workout library editing ────────────────────────────
     fun newWorkout() {
+        val app = getApplication<Application>()
         val w = Workout(
-            id = uid(), name = "New workout", createdAt = System.currentTimeMillis(),
+            id = uid(), name = app.getString(R.string.common_new_workout), createdAt = System.currentTimeMillis(),
             supersets = listOf(
                 Superset(
-                    id = uid(), name = "Block 1", sets = 3,
+                    id = uid(), name = app.getString(R.string.default_block_name, 1), sets = 3,
                     restBetweenSets = 60, restAfter = 120,
                     exercises = listOf(Exercise(uid(), "", 30)),
                 )
@@ -257,7 +258,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val src = list[i]
         val copy = src.copy(
             id = uid(),
-            name = src.name + " copy",
+            name = getApplication<Application>().getString(R.string.workout_copy_suffix, src.name),
             supersets = src.supersets.map { ss ->
                 ss.copy(id = uid(), exercises = ss.exercises.map { it.copy(id = uid()) })
             },
@@ -273,10 +274,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun saveWorkout(w: Workout) {
+        val app = getApplication<Application>()
         val fixed = w.copy(
             supersets = w.supersets.mapIndexed { i, ss ->
                 ss.copy(exercises = ss.exercises.mapIndexed { j, e ->
-                    if (e.name.isBlank()) e.copy(name = "Exercise ${i + 1}-${j + 1}") else e
+                    if (e.name.isBlank()) e.copy(name = app.getString(R.string.default_exercise_name, i + 1, j + 1)) else e
                 })
             }
         )

@@ -26,11 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.Settings
 import io.shizen.workouttimer.data.Step
 import io.shizen.workouttimer.data.StepKind
@@ -77,11 +79,13 @@ fun ActiveScreen(
         StepKind.REST -> WT.Rest
         StepKind.WORK -> WT.Accent
     }
-    val label = when (phase) {
-        StepKind.COUNTDOWN -> "GET READY"
-        StepKind.REST -> if (cur.restType == RestType.SUPERSET) "BLOCK REST" else "REST"
-        StepKind.WORK -> "WORK"
-    }
+    val label = stringResource(
+        when (phase) {
+            StepKind.COUNTDOWN -> R.string.active_label_get_ready
+            StepKind.REST -> if (cur.restType == RestType.SUPERSET) R.string.active_label_block_rest else R.string.active_label_rest
+            StepKind.WORK -> R.string.active_label_work
+        }
+    )
     val totalWork = state.totalWork
     val doneWork = state.doneWork
     val notStarted = !state.started
@@ -93,7 +97,7 @@ fun ActiveScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            IconBtn("chevD", onClick = { confirmEnd = true }, contentDescription = "End workout", size = 38, iconSize = 22, bg = Color.Transparent, color = WT.Muted)
+            IconBtn("chevD", onClick = { confirmEnd = true }, contentDescription = stringResource(R.string.active_end_workout), size = 38, iconSize = 22, bg = Color.Transparent, color = WT.Muted)
             Text(
                 state.workoutName,
                 modifier = Modifier.weight(1f),
@@ -112,7 +116,7 @@ fun ActiveScreen(
                     color = WT.Text,
                 )
                 Text(
-                    "$doneWork/$totalWork SETS",
+                    stringResource(R.string.active_sets_progress, doneWork, totalWork),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -159,7 +163,7 @@ fun ActiveScreen(
                         SetDots(cur.totalSets, cur.setNumber)
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            "SET ${cur.setNumber} / ${cur.totalSets}",
+                            stringResource(R.string.active_set_progress, cur.setNumber, cur.totalSets),
                             fontSize = 12.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = WT.Muted,
@@ -167,7 +171,7 @@ fun ActiveScreen(
                         )
                         Spacer(Modifier.height(12.dp))
                         RepsInput(
-                            label = "REPS",
+                            label = stringResource(R.string.active_reps),
                             value = state.reps[cur.workIndex] ?: 0,
                             onValueChange = onSetReps,
                         )
@@ -175,21 +179,21 @@ fun ActiveScreen(
                     StepKind.REST -> {
                         val nextWork = nextWorkStep(steps, state.idx)
                         val prevWork = prevWorkStep(steps, state.idx)
-                        Text("Catch your breath", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
+                        Text(stringResource(R.string.active_catch_breath), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(16.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             RestSetColumn(
-                                role = "LAST SET",
+                                role = stringResource(R.string.active_role_last_set),
                                 step = prevWork,
                                 reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
                                 onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
                                 modifier = Modifier.weight(1f),
                             )
                             RestSetColumn(
-                                role = "NEXT UP",
+                                role = stringResource(R.string.active_role_next_up),
                                 step = nextWork,
                                 reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
                                 onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
@@ -198,7 +202,7 @@ fun ActiveScreen(
                         }
                     }
                     StepKind.COUNTDOWN -> {
-                        Text("Starting in…", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted)
+                        Text(stringResource(R.string.active_starting_in), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted)
                     }
                 }
             }
@@ -214,11 +218,11 @@ fun ActiveScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (notStarted) {
-                Btn("Start", onClick = onStart, icon = "play", size = BtnSize.Lg, fillMaxWidth = true)
+                Btn(stringResource(R.string.active_start), onClick = onStart, icon = "play", size = BtnSize.Lg, fillMaxWidth = true)
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Btn(
-                        if (state.running) "Pause" else "Resume",
+                        stringResource(if (state.running) R.string.active_pause else R.string.active_resume),
                         onClick = onTogglePause,
                         icon = if (state.running) "pause" else "play",
                         size = BtnSize.Lg,
@@ -226,11 +230,13 @@ fun ActiveScreen(
                         modifier = Modifier.width(130.dp),
                     )
                     Btn(
-                        when (phase) {
-                            StepKind.COUNTDOWN -> "Skip"
-                            StepKind.REST -> "Skip rest"
-                            StepKind.WORK -> "Finish set"
-                        },
+                        stringResource(
+                            when (phase) {
+                                StepKind.COUNTDOWN -> R.string.active_skip
+                                StepKind.REST -> R.string.active_skip_rest
+                                StepKind.WORK -> R.string.active_finish_set
+                            }
+                        ),
                         onClick = onAdvance,
                         icon = "next",
                         size = BtnSize.Lg,
@@ -244,28 +250,28 @@ fun ActiveScreen(
                 IconBtn(
                     if (settings.vibrate) "vibrate" else "vibrateOff",
                     onClick = onToggleVibrate,
-                    contentDescription = if (settings.vibrate) "Vibration on, tap to turn off" else "Vibration off, tap to turn on",
+                    contentDescription = stringResource(if (settings.vibrate) R.string.active_vibration_on else R.string.active_vibration_off),
                     active = settings.vibrate,
                     iconSize = 20,
                 )
                 IconBtn(
                     if (settings.sound) "speaker" else "speakerOff",
                     onClick = onToggleSound,
-                    contentDescription = if (settings.sound) "Sound on, tap to turn off" else "Sound off, tap to turn on",
+                    contentDescription = stringResource(if (settings.sound) R.string.active_sound_on else R.string.active_sound_off),
                     active = settings.sound,
                     iconSize = 20,
                 )
                 Spacer(Modifier.weight(1f))
-                Btn("Finish", onClick = { confirmEnd = true }, variant = BtnVariant.Danger, size = BtnSize.Sm, icon = "check")
+                Btn(stringResource(R.string.active_finish), onClick = { confirmEnd = true }, variant = BtnVariant.Danger, size = BtnSize.Sm, icon = "check")
             }
         }
     }
 
     if (confirmEnd) {
         ConfirmDialog(
-            title = "Finish workout?",
-            body = "You'll go to the summary where you can log reps and how it felt.",
-            confirmLabel = "Finish & review",
+            title = stringResource(R.string.active_finish_dialog_title),
+            body = stringResource(R.string.active_finish_dialog_body),
+            confirmLabel = stringResource(R.string.active_finish_dialog_confirm),
             danger = false,
             onConfirm = { confirmEnd = false; onFinishNow() },
             onDismiss = { confirmEnd = false },
@@ -382,14 +388,15 @@ private fun RestSetColumn(
             SetDots(step.totalSets, step.setNumber)
         }
         Text(
-            if (step != null) "SET ${step.setNumber} / ${step.totalSets}" else "SET — / —",
+            if (step != null) stringResource(R.string.active_set_progress, step.setNumber, step.totalSets)
+            else stringResource(R.string.active_set_progress_empty),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = WT.Muted,
             fontFamily = WtFonts.Mono,
         )
         Spacer(Modifier.height(2.dp))
-        Text("REPS", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
+        Text(stringResource(R.string.active_reps), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = WT.Muted)
         if (step != null) {
             Stepper(value = reps, onValueChange = onRepsChange, min = 0, max = 999, width = 116)
         }
@@ -449,8 +456,10 @@ private fun ContextStrip(steps: List<Step>, idx: Int) {
     val multi = now != null && now.exCount > 1
     val showSuper = multi && !supersetName.contains("super", ignoreCase = true)
     val midColor = if (cur.kind == StepKind.COUNTDOWN) WT.Warn else WT.Rest
-    val midLabel = if (cur.kind == StepKind.COUNTDOWN) "GET READY"
-    else if (cur.restType == RestType.SUPERSET) "BLOCK REST" else "REST"
+    val midLabel = stringResource(
+        if (cur.kind == StepKind.COUNTDOWN) R.string.active_label_get_ready
+        else if (cur.restType == RestType.SUPERSET) R.string.active_label_block_rest else R.string.active_label_rest
+    )
 
     Column(
         Modifier
@@ -460,8 +469,9 @@ private fun ContextStrip(steps: List<Step>, idx: Int) {
             .border(1.dp, WT.Line, RoundedCornerShape(14.dp))
             .padding(horizontal = 8.dp, vertical = 10.dp),
     ) {
+        val stripBase = supersetName.ifEmpty { stringResource(R.string.active_up_next) }
         Text(
-            ((supersetName.ifEmpty { "Up next" }) + (if (showSuper) " · superset" else "")).uppercase(),
+            (if (showSuper) stringResource(R.string.active_superset_suffix, stripBase) else stripBase).uppercase(),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             fontSize = 11.sp,
@@ -471,10 +481,10 @@ private fun ContextStrip(steps: List<Step>, idx: Int) {
         )
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            ContextPart(prev, active = false, role = "DONE", modifier = Modifier.weight(1f))
+            ContextPart(prev, active = false, role = stringResource(R.string.active_role_done), modifier = Modifier.weight(1f))
             WtIcon("chevR", size = 14.dp, color = WT.Faint)
             if (cur.kind == StepKind.WORK) {
-                ContextPart(now, active = true, role = "NOW", modifier = Modifier.weight(1f))
+                ContextPart(now, active = true, role = stringResource(R.string.active_role_now), modifier = Modifier.weight(1f))
             } else {
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -484,7 +494,7 @@ private fun ContextStrip(steps: List<Step>, idx: Int) {
                 }
             }
             WtIcon("chevR", size = 14.dp, color = WT.Faint)
-            ContextPart(next, active = false, role = "NEXT", modifier = Modifier.weight(1f))
+            ContextPart(next, active = false, role = stringResource(R.string.active_role_next), modifier = Modifier.weight(1f))
         }
     }
 }

@@ -25,11 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.Exercise
 import io.shizen.workouttimer.data.Superset
 import io.shizen.workouttimer.data.Workout
@@ -55,6 +57,7 @@ fun EditorScreen(
     onCancel: () -> Unit,
 ) {
     var w by remember { mutableStateOf(initial) }
+    val defaultBlockName = stringResource(R.string.default_block_name, w.supersets.size + 1)
 
     fun updSS(i: Int, ss: Superset) {
         w = w.copy(supersets = w.supersets.toMutableList().apply { this[i] = ss })
@@ -62,7 +65,7 @@ fun EditorScreen(
     fun addSS() {
         w = w.copy(
             supersets = w.supersets + Superset(
-                id = uid(), name = "Block ${w.supersets.size + 1}", sets = 3,
+                id = uid(), name = defaultBlockName, sets = 3,
                 restBetweenSets = 60, restAfter = 120,
                 exercises = listOf(Exercise(uid(), "", 30)),
             )
@@ -81,15 +84,15 @@ fun EditorScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            IconBtn("back", onClick = onCancel, contentDescription = "Back", size = 40, iconSize = 22, bg = Color.Transparent)
+            IconBtn("back", onClick = onCancel, contentDescription = stringResource(R.string.common_back), size = 40, iconSize = 22, bg = Color.Transparent)
             Text(
-                if (isNew) "New workout" else "Edit workout",
+                stringResource(if (isNew) R.string.common_new_workout else R.string.common_edit_workout),
                 modifier = Modifier.weight(1f),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = WT.Text,
             )
-            Btn("Save", onClick = { onSave(w) }, size = BtnSize.Sm, enabled = valid)
+            Btn(stringResource(R.string.common_save), onClick = { onSave(w) }, size = BtnSize.Sm, enabled = valid)
         }
 
         LazyColumn(
@@ -113,11 +116,11 @@ fun EditorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text("Workout name", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Text)
+                        Text(stringResource(R.string.editor_workout_name), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Text)
                         EditField(
                             value = w.name,
                             onValueChange = { w = w.copy(name = it) },
-                            placeholder = "Name",
+                            placeholder = stringResource(R.string.editor_name_placeholder),
                             modifier = Modifier.width(180.dp),
                             textAlign = TextAlign.End,
                             fontSize = 15.sp,
@@ -133,7 +136,7 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        "BLOCKS",
+                        stringResource(R.string.editor_blocks),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
@@ -171,7 +174,7 @@ fun EditorScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         WtIcon("add", size = 20.dp, color = WT.Muted)
-                        Text("Add block", color = WT.Muted, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.editor_add_block), color = WT.Muted, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -214,14 +217,14 @@ private fun SupersetEditor(
             EditField(
                 value = ss.name,
                 onValueChange = { onChange(ss.copy(name = it)) },
-                placeholder = "Block name",
+                placeholder = stringResource(R.string.editor_block_name_placeholder),
                 modifier = Modifier.weight(1f),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
-            if (multi) Pill("SUPERSET", tone = PillTone.Accent)
+            if (multi) Pill(stringResource(R.string.editor_superset_pill), tone = PillTone.Accent)
             if (canRemove) {
-                IconBtn("trash", onClick = onRemove, contentDescription = "Remove block", size = 34, iconSize = 17, bg = Color.Transparent, color = WT.Faint)
+                IconBtn("trash", onClick = onRemove, contentDescription = stringResource(R.string.editor_remove_block), size = 34, iconSize = 17, bg = Color.Transparent, color = WT.Faint)
             }
         }
 
@@ -230,7 +233,7 @@ private fun SupersetEditor(
                 ExerciseRow(
                     ex = ex,
                     canRemove = multi,
-                    placeholder = "Exercise ${index + 1}-${i + 1}",
+                    placeholder = stringResource(R.string.default_exercise_name, index + 1, i + 1),
                     onChange = { updEx(i, it) },
                     onRemove = { rmEx(i) },
                 )
@@ -249,7 +252,7 @@ private fun SupersetEditor(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 WtIcon("plus", size = 16.dp, color = WT.Muted)
                 Text(
-                    if (multi) "Add exercise to block" else "Add exercise to block (make superset)",
+                    stringResource(if (multi) R.string.editor_add_exercise else R.string.editor_add_exercise_superset),
                     color = WT.Muted,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -259,15 +262,18 @@ private fun SupersetEditor(
 
         Box(Modifier.fillMaxWidth().height(1.dp).background(WT.Line))
 
-        EditorField("Sets", hint = if (multi) "rounds, alternating each exercise" else "number of rounds") {
+        EditorField(
+            stringResource(R.string.editor_sets),
+            hint = stringResource(if (multi) R.string.editor_sets_hint_multi else R.string.editor_sets_hint_single),
+        ) {
             Stepper(ss.sets, onValueChange = { onChange(ss.copy(sets = it)) }, min = 1, max = 50, width = 104)
         }
-        EditorField("Rest between sets") {
-            Stepper(ss.restBetweenSets, onValueChange = { onChange(ss.copy(restBetweenSets = it)) }, step = 5, min = 0, max = 600, suffix = "s", width = 104)
+        EditorField(stringResource(R.string.editor_rest_between_sets)) {
+            Stepper(ss.restBetweenSets, onValueChange = { onChange(ss.copy(restBetweenSets = it)) }, step = 5, min = 0, max = 600, suffix = stringResource(R.string.seconds_suffix), width = 104)
         }
         if (!isLast) {
-            EditorField("Rest after block", hint = "before the next block") {
-                Stepper(ss.restAfter, onValueChange = { onChange(ss.copy(restAfter = it)) }, step = 5, min = 0, max = 600, suffix = "s", width = 104)
+            EditorField(stringResource(R.string.editor_rest_after_block), hint = stringResource(R.string.editor_rest_after_hint)) {
+                Stepper(ss.restAfter, onValueChange = { onChange(ss.copy(restAfter = it)) }, step = 5, min = 0, max = 600, suffix = stringResource(R.string.seconds_suffix), width = 104)
             }
         }
     }
@@ -299,9 +305,9 @@ private fun ExerciseRow(
             fontSize = 14.5.sp,
             fontWeight = FontWeight.SemiBold,
         )
-        Stepper(ex.duration, onValueChange = { onChange(ex.copy(duration = it)) }, step = 5, min = 5, max = 900, suffix = "s", width = 104)
+        Stepper(ex.duration, onValueChange = { onChange(ex.copy(duration = it)) }, step = 5, min = 5, max = 900, suffix = stringResource(R.string.seconds_suffix), width = 104)
         if (canRemove) {
-            IconBtn("x", onClick = onRemove, contentDescription = "Remove exercise", size = 32, iconSize = 16, bg = Color.Transparent, color = WT.Faint)
+            IconBtn("x", onClick = onRemove, contentDescription = stringResource(R.string.editor_remove_exercise), size = 32, iconSize = 16, bg = Color.Transparent, color = WT.Faint)
         }
     }
 }

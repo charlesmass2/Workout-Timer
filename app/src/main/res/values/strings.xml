@@ -1,4 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Workout Timer</string>
+
+    <!-- Common -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_back">Back</string>
+    <string name="common_new_workout">New workout</string>
+    <string name="common_edit_workout">Edit workout</string>
+    <string name="common_edit_session">Edit session</string>
+    <string name="common_delete_session">Delete session</string>
+    <string name="common_satisfaction">Satisfaction</string>
+    <string name="common_breathlessness">Breathlessness</string>
+    <string name="seconds_suffix">s</string>
+
+    <!-- Counts -->
+    <plurals name="blocks_count">
+        <item quantity="one">%1$d block</item>
+        <item quantity="other">%1$d blocks</item>
+    </plurals>
+    <plurals name="sets_count">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
+    <plurals name="reps_count">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+
+    <!-- Rating scales -->
+    <string name="rating_poor">Poor</string>
+    <string name="rating_okay">Okay</string>
+    <string name="rating_good">Good</string>
+    <string name="rating_great">Great</string>
+    <string name="rating_easy">Easy</string>
+    <string name="rating_moderate">Moderate</string>
+    <string name="rating_hard">Hard</string>
+    <string name="rating_maxed">Maxed</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_workouts">Workouts</string>
+    <string name="tab_history">History</string>
+
+    <!-- Resume prompt -->
+    <string name="resume_dialog_title">Resume workout?</string>
+    <string name="resume_dialog_body_named">You have \"%1$s\" in progress.</string>
+    <string name="resume_dialog_body">You have a workout in progress.</string>
+    <string name="resume_dialog_confirm">Resume</string>
+
+    <!-- Home -->
+    <string name="home_eyebrow">Workouts</string>
+    <string name="home_title">Your library</string>
+    <string name="home_menu_duplicate">Duplicate</string>
+    <string name="home_workout_options">Workout options</string>
+    <string name="home_sets_multiplier">×%1$d</string>
+    <string name="home_start_workout">Start workout</string>
+    <string name="home_delete_dialog_title">Delete workout?</string>
+    <string name="home_delete_dialog_body">\"%1$s\" will be removed. History is kept.</string>
+
+    <!-- Default names for new/duplicated content -->
+    <string name="default_block_name">Block %1$d</string>
+    <string name="default_exercise_name">Exercise %1$d-%2$d</string>
+    <string name="workout_copy_suffix">%1$s copy</string>
+
+    <!-- Editor -->
+    <string name="editor_workout_name">Workout name</string>
+    <string name="editor_name_placeholder">Name</string>
+    <string name="editor_blocks">BLOCKS</string>
+    <string name="editor_block_name_placeholder">Block name</string>
+    <string name="editor_superset_pill">SUPERSET</string>
+    <string name="editor_remove_block">Remove block</string>
+    <string name="editor_add_exercise">Add exercise to block</string>
+    <string name="editor_add_exercise_superset">Add exercise to block (make superset)</string>
+    <string name="editor_remove_exercise">Remove exercise</string>
+    <string name="editor_sets">Sets</string>
+    <string name="editor_sets_hint_multi">rounds, alternating each exercise</string>
+    <string name="editor_sets_hint_single">number of rounds</string>
+    <string name="editor_rest_between_sets">Rest between sets</string>
+    <string name="editor_rest_after_block">Rest after block</string>
+    <string name="editor_rest_after_hint">before the next block</string>
+    <string name="editor_add_block">Add block</string>
+
+    <!-- Active workout -->
+    <string name="active_label_get_ready">GET READY</string>
+    <string name="active_label_block_rest">BLOCK REST</string>
+    <string name="active_label_rest">REST</string>
+    <string name="active_label_work">WORK</string>
+    <string name="active_end_workout">End workout</string>
+    <string name="active_sets_progress">%1$d/%2$d SETS</string>
+    <string name="active_set_progress">SET %1$d / %2$d</string>
+    <string name="active_set_progress_empty">SET — / —</string>
+    <string name="active_reps">REPS</string>
+    <string name="active_catch_breath">Catch your breath</string>
+    <string name="active_role_last_set">LAST SET</string>
+    <string name="active_role_next_up">NEXT UP</string>
+    <string name="active_up_next">Up next</string>
+    <string name="active_superset_suffix">%1$s · superset</string>
+    <string name="active_starting_in">Starting in…</string>
+    <string name="active_start">Start</string>
+    <string name="active_pause">Pause</string>
+    <string name="active_resume">Resume</string>
+    <string name="active_skip">Skip</string>
+    <string name="active_skip_rest">Skip rest</string>
+    <string name="active_finish_set">Finish set</string>
+    <string name="active_finish">Finish</string>
+    <string name="active_vibration_on">Vibration on, tap to turn off</string>
+    <string name="active_vibration_off">Vibration off, tap to turn on</string>
+    <string name="active_sound_on">Sound on, tap to turn off</string>
+    <string name="active_sound_off">Sound off, tap to turn on</string>
+    <string name="active_finish_dialog_title">Finish workout?</string>
+    <string name="active_finish_dialog_body">You\'ll go to the summary where you can log reps and how it felt.</string>
+    <string name="active_finish_dialog_confirm">Finish &amp; review</string>
+    <string name="active_role_done">DONE</string>
+    <string name="active_role_now">NOW</string>
+    <string name="active_role_next">NEXT</string>
+
+    <!-- History -->
+    <string name="history_eyebrow">History</string>
+    <string name="history_title">Your sessions</string>
+    <string name="history_clear_all_cd">Clear all history</string>
+    <string name="history_empty_title">No sessions yet</string>
+    <string name="history_empty_body">Complete a workout and it lands here.</string>
+    <string name="history_clear_dialog_title">Clear all history?</string>
+    <string name="history_clear_dialog_body">Every saved session will be permanently removed.</string>
+    <string name="history_clear_dialog_confirm">Clear all</string>
+    <string name="history_delete_dialog_title">Delete this session?</string>
+    <string name="history_delete_dialog_body">%1$s · %2$s will be removed.</string>
+
+    <!-- History detail -->
+    <string name="detail_date_range">%1$s · %2$s–%3$s</string>
+    <string name="detail_total_time">Total time</string>
+    <string name="detail_planned">Planned</string>
+    <string name="detail_total_reps">Total reps</string>
+    <string name="detail_sets_done">Sets done</string>
+    <string name="detail_exercise_breakdown">Exercise breakdown</string>
+    <string name="detail_vs_plan">%1$s vs plan</string>
+    <string name="detail_col_set">SET</string>
+    <string name="detail_col_planned">PLANNED</string>
+    <string name="detail_col_actual">ACTUAL</string>
+    <string name="detail_col_reps">REPS</string>
+    <string name="detail_delete_dialog_body">This session will be permanently removed from your history.</string>
+
+    <!-- Summary -->
+    <string name="summary_title">Workout complete</string>
+    <string name="summary_stat_time">Time</string>
+    <string name="summary_stat_date">Date</string>
+    <string name="summary_stat_sets">Sets</string>
+    <string name="summary_how_feel">How did it feel?</string>
+    <string name="summary_log_reps">Log your reps</string>
+    <string name="summary_log_reps_sub">optional — tap a number, or use \"Set all\"</string>
+    <string name="summary_group_sub">%1$s · %2$s</string>
+    <string name="summary_set_all">SET ALL</string>
+    <string name="summary_set_n">SET %1$d</string>
+    <string name="summary_discard">Discard</string>
+    <string name="summary_save_changes">Save changes</string>
+    <string name="summary_save_to_history">Save to history</string>
+    <string name="summary_discard_dialog_title">Discard workout?</string>
+    <string name="summary_discard_dialog_body">This session won\'t be saved to your history. This can\'t be undone.</string>
 </resources>

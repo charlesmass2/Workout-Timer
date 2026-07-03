@@ -23,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.shizen.workouttimer.R
 import io.shizen.workouttimer.data.BREATHLESS
 import io.shizen.workouttimer.data.SATISFACTION
 import io.shizen.workouttimer.data.SetResult
@@ -69,7 +71,7 @@ fun HistoryDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            IconBtn("back", onClick = onBack, contentDescription = "Back", size = 40, iconSize = 22, bg = Color.Transparent)
+            IconBtn("back", onClick = onBack, contentDescription = stringResource(R.string.common_back), size = 40, iconSize = 22, bg = Color.Transparent)
             Column(Modifier.weight(1f)) {
                 Text(
                     entry.workoutName,
@@ -80,14 +82,14 @@ fun HistoryDetailScreen(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "${fmtDate(entry.endedAt)} · ${fmtTime(entry.startedAt)}–${fmtTime(entry.endedAt)}",
+                    stringResource(R.string.detail_date_range, fmtDate(entry.endedAt), fmtTime(entry.startedAt), fmtTime(entry.endedAt)),
                     fontSize = 12.sp,
                     color = WT.Muted,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            IconBtn("edit", onClick = { onEdit(entry) }, contentDescription = "Edit session", size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Muted)
-            IconBtn("trash", onClick = { del = true }, contentDescription = "Delete session", size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Faint)
+            IconBtn("edit", onClick = { onEdit(entry) }, contentDescription = stringResource(R.string.common_edit_session), size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Muted)
+            IconBtn("trash", onClick = { del = true }, contentDescription = stringResource(R.string.common_delete_session), size = 40, iconSize = 19, bg = Color.Transparent, color = WT.Faint)
         }
 
         LazyColumn(
@@ -100,12 +102,12 @@ fun HistoryDetailScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Metric("Total time", fmtLong(entry.totalElapsed), signedLong(delta), Modifier.weight(1f))
-                        Metric("Planned", fmtLong(entry.estimated), null, Modifier.weight(1f))
+                        Metric(stringResource(R.string.detail_total_time), fmtLong(entry.totalElapsed), stringResource(R.string.detail_vs_plan, signedLong(delta)), Modifier.weight(1f))
+                        Metric(stringResource(R.string.detail_planned), fmtLong(entry.estimated), null, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Metric("Total reps", if (totalReps > 0) "$totalReps" else "—", null, Modifier.weight(1f))
-                        Metric("Sets done", "${entry.sets.size}", null, Modifier.weight(1f))
+                        Metric(stringResource(R.string.detail_total_reps), if (totalReps > 0) "$totalReps" else "—", null, Modifier.weight(1f))
+                        Metric(stringResource(R.string.detail_sets_done), "${entry.sets.size}", null, Modifier.weight(1f))
                     }
                 }
             }
@@ -113,13 +115,13 @@ fun HistoryDetailScreen(
             if (sat != null || brt != null) {
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (sat != null) FeelCard("Satisfaction", sat.label, sat.key, WT.Accent, Modifier.weight(1f))
-                        if (brt != null) FeelCard("Breathlessness", brt.label, brt.key, WT.Rest, Modifier.weight(1f))
+                        if (sat != null) FeelCard(stringResource(R.string.common_satisfaction), stringResource(sat.labelRes), sat.key, WT.Accent, Modifier.weight(1f))
+                        if (brt != null) FeelCard(stringResource(R.string.common_breathlessness), stringResource(brt.labelRes), brt.key, WT.Rest, Modifier.weight(1f))
                     }
                 }
             }
 
-            item { SectionLabel("Exercise breakdown") }
+            item { SectionLabel(stringResource(R.string.detail_exercise_breakdown)) }
 
             groups.values.forEach { g ->
                 item { ExerciseBreakdown(g) }
@@ -129,9 +131,9 @@ fun HistoryDetailScreen(
 
     if (del) {
         ConfirmDialog(
-            title = "Delete this session?",
-            body = "This session will be permanently removed from your history.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.history_delete_dialog_title),
+            body = stringResource(R.string.detail_delete_dialog_body),
+            confirmLabel = stringResource(R.string.common_delete),
             danger = true,
             onConfirm = { onDelete(entry.id) },
             onDismiss = { del = false },
@@ -212,8 +214,8 @@ private fun ExerciseBreakdown(g: Group) {
             Text(g.name, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = WT.Text)
             Text(g.block, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = WT.Faint, fontFamily = WtFonts.Mono)
         }
-        // header
-        BreakdownRow("Set", "Planned", "Actual", "Reps", header = true)
+        // header row ignores the cell values and shows the column-label resources
+        BreakdownRow("", "", "", "", header = true)
         Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 6.dp)) {
             g.sets.forEach { s ->
                 val over = s.actual > s.planned
@@ -250,7 +252,7 @@ private fun BreakdownRow(
         val cellFont = if (header) 10.sp else 13.sp
         val labelColor = WT.Faint
         Text(
-            if (header) "SET" else set,
+            if (header) stringResource(R.string.detail_col_set) else set,
             modifier = Modifier.width(46.dp),
             textAlign = if (header) TextAlign.Start else TextAlign.Center,
             fontFamily = if (header) WtFonts.Sans else WtFonts.Mono,
@@ -259,9 +261,9 @@ private fun BreakdownRow(
             color = if (header) labelColor else WT.Accent,
             letterSpacing = if (header) 0.6.sp else 0.sp,
         )
-        BreakCell(if (header) "PLANNED" else planned, header, if (header) labelColor else WT.Muted, FontWeight.Normal)
-        BreakCell(if (header) "ACTUAL" else actual, header, if (header) labelColor else actualColor, FontWeight.SemiBold)
-        BreakCell(if (header) "REPS" else reps, header, if (header) labelColor else repsColor, FontWeight.Bold)
+        BreakCell(if (header) stringResource(R.string.detail_col_planned) else planned, header, if (header) labelColor else WT.Muted, FontWeight.Normal)
+        BreakCell(if (header) stringResource(R.string.detail_col_actual) else actual, header, if (header) labelColor else actualColor, FontWeight.SemiBold)
+        BreakCell(if (header) stringResource(R.string.detail_col_reps) else reps, header, if (header) labelColor else repsColor, FontWeight.Bold)
     }
 }
 
