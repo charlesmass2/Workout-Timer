@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -151,6 +152,32 @@ fun ActiveScreen(
         ) {
             ContextStrip(steps, state.idx)
 
+            if (phase == StepKind.REST) {
+                val nextWork = nextWorkStep(steps, state.idx)
+                val prevWork = prevWorkStep(steps, state.idx)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    RestSetColumn(
+                        role = stringResource(R.string.active_role_last_set),
+                        step = prevWork,
+                        reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
+                        onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                        isNext = false,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RestSetColumn(
+                        role = stringResource(R.string.active_role_next_up),
+                        step = nextWork,
+                        reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
+                        onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                        isNext = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -177,29 +204,7 @@ fun ActiveScreen(
                         )
                     }
                     StepKind.REST -> {
-                        val nextWork = nextWorkStep(steps, state.idx)
-                        val prevWork = prevWorkStep(steps, state.idx)
                         Text(stringResource(R.string.active_catch_breath), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
-                        Spacer(Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            RestSetColumn(
-                                role = stringResource(R.string.active_role_last_set),
-                                step = prevWork,
-                                reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
-                                onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                            RestSetColumn(
-                                role = stringResource(R.string.active_role_next_up),
-                                step = nextWork,
-                                reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
-                                onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
                     }
                     StepKind.COUNTDOWN -> {
                         Text(stringResource(R.string.active_starting_in), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted)
@@ -362,13 +367,17 @@ private fun RestSetColumn(
     step: Step?,
     reps: Int,
     onRepsChange: (Int) -> Unit,
+    isNext: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val shape = RoundedCornerShape(14.dp)
     Column(
         modifier
-            .clip(RoundedCornerShape(14.dp))
+            .scale(if (isNext) 1f else 0.92f)
+            .clip(shape)
             .background(WT.Surface)
-            .border(1.dp, WT.Line, RoundedCornerShape(14.dp))
+            .background(if (isNext) WT.Accent.copy(alpha = 0.08f) else Color.Transparent)
+            .border(1.dp, if (isNext) WT.Accent.copy(alpha = 0.6f) else WT.Line, shape)
             .padding(horizontal = 10.dp, vertical = 12.dp)
             .alpha(if (step != null) 1f else 0.35f),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -385,7 +394,7 @@ private fun RestSetColumn(
             textAlign = TextAlign.Center,
         )
         if (step != null) {
-            SetDots(step.totalSets, step.setNumber)
+            SetDots(step.totalSets, step.setNumber, color = if (isNext) WT.Accent else WT.Muted)
         }
         Text(
             if (step != null) stringResource(R.string.active_set_progress, step.setNumber, step.totalSets)
@@ -405,7 +414,7 @@ private fun RestSetColumn(
 
 // ── Set dots ────────────────────────────────────────────────
 @Composable
-private fun SetDots(total: Int, current: Int) {
+private fun SetDots(total: Int, current: Int, color: Color = WT.Accent) {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         (0 until total).forEach { i ->
             val done = i < current - 1
@@ -417,8 +426,8 @@ private fun SetDots(total: Int, current: Int) {
                     .clip(RoundedCornerShape(5.dp))
                     .background(
                         when {
-                            isCur -> WT.Accent
-                            done -> WT.Accent.copy(alpha = 0.5f)
+                            isCur -> color
+                            done -> color.copy(alpha = 0.5f)
                             else -> WT.Surface2
                         }
                     ),
