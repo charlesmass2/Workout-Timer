@@ -152,6 +152,32 @@ fun ActiveScreen(
         ) {
             ContextStrip(steps, state.idx)
 
+            if (phase == StepKind.REST) {
+                val nextWork = nextWorkStep(steps, state.idx)
+                val prevWork = prevWorkStep(steps, state.idx)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    RestSetColumn(
+                        role = stringResource(R.string.active_role_last_set),
+                        step = prevWork,
+                        reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
+                        onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                        isNext = false,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RestSetColumn(
+                        role = stringResource(R.string.active_role_next_up),
+                        step = nextWork,
+                        reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
+                        onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
+                        isNext = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -178,31 +204,7 @@ fun ActiveScreen(
                         )
                     }
                     StepKind.REST -> {
-                        val nextWork = nextWorkStep(steps, state.idx)
-                        val prevWork = prevWorkStep(steps, state.idx)
                         Text(stringResource(R.string.active_catch_breath), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted, textAlign = TextAlign.Center)
-                        Spacer(Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            RestSetColumn(
-                                role = stringResource(R.string.active_role_last_set),
-                                step = prevWork,
-                                reps = prevWork?.let { state.reps[it.workIndex] } ?: 0,
-                                onRepsChange = { r -> prevWork?.let { onSetRepsForWork(it.workIndex, r) } },
-                                isNext = false,
-                                modifier = Modifier.weight(1f),
-                            )
-                            RestSetColumn(
-                                role = stringResource(R.string.active_role_next_up),
-                                step = nextWork,
-                                reps = nextWork?.let { state.reps[it.workIndex] } ?: 0,
-                                onRepsChange = { r -> nextWork?.let { onSetRepsForWork(it.workIndex, r) } },
-                                isNext = true,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
                     }
                     StepKind.COUNTDOWN -> {
                         Text(stringResource(R.string.active_starting_in), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, color = WT.Muted)
