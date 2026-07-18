@@ -399,6 +399,7 @@ private fun RestSetColumn(
             textAlign = TextAlign.Center,
         )
         if (step != null) {
+            // Blink the upcoming set's dot so it stands out during rest.
             SetDots(step.totalSets, step.setNumber, color = if (isNext) WT.Accent else WT.Muted, blinkCurrent = isNext)
         }
         Text(
@@ -420,6 +421,8 @@ private fun RestSetColumn(
 // ── Set dots ────────────────────────────────────────────────
 @Composable
 private fun SetDots(total: Int, current: Int, color: Color = WT.Accent, blinkCurrent: Boolean = false) {
+    // When blinking, fade the current dot between 100% and 25% opacity,
+    // 600ms each way, forever. Otherwise keep it fully opaque.
     val blinkAlpha = if (blinkCurrent) {
         rememberInfiniteTransition(label = "setDotBlink").animateFloat(
             initialValue = 1f,
@@ -437,6 +440,7 @@ private fun SetDots(total: Int, current: Int, color: Color = WT.Accent, blinkCur
                     .width(if (isCur) 22.dp else 9.dp)
                     .height(9.dp)
                     .clip(RoundedCornerShape(5.dp))
+                    // Only the current set's dot blinks; the others stay static.
                     .alpha(if (isCur) blinkAlpha else 1f)
                     .background(
                         when {
