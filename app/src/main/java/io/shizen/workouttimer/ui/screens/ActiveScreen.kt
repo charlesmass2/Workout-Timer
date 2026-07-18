@@ -440,7 +440,6 @@ private fun SetDots(total: Int, current: Int, color: Color = WT.Accent, blinkCur
                     .width(if (isCur) 22.dp else 9.dp)
                     .height(9.dp)
                     .clip(RoundedCornerShape(5.dp))
-                    // Only the current set's dot blinks; the others stay static.
                     .alpha(if (isCur) blinkAlpha else 1f)
                     .background(
                         when {
