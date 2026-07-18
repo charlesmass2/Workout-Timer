@@ -1,6 +1,11 @@
 package io.shizen.workouttimer.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -394,7 +399,8 @@ private fun RestSetColumn(
             textAlign = TextAlign.Center,
         )
         if (step != null) {
-            SetDots(step.totalSets, step.setNumber, color = if (isNext) WT.Accent else WT.Muted)
+            // Blink the upcoming set's dot so it stands out during rest.
+            SetDots(step.totalSets, step.setNumber, color = if (isNext) WT.Accent else WT.Muted, blinkCurrent = isNext)
         }
         Text(
             if (step != null) stringResource(R.string.active_set_progress, step.setNumber, step.totalSets)
@@ -414,7 +420,17 @@ private fun RestSetColumn(
 
 // ── Set dots ────────────────────────────────────────────────
 @Composable
-private fun SetDots(total: Int, current: Int, color: Color = WT.Accent) {
+private fun SetDots(total: Int, current: Int, color: Color = WT.Accent, blinkCurrent: Boolean = false) {
+    // When blinking, fade the current dot between 100% and 25% opacity,
+    // 600ms each way, forever. Otherwise keep it fully opaque.
+    val blinkAlpha = if (blinkCurrent) {
+        rememberInfiniteTransition(label = "setDotBlink").animateFloat(
+            initialValue = 1f,
+            targetValue = 0.25f,
+            animationSpec = infiniteRepeatable(tween(durationMillis = 600), RepeatMode.Reverse),
+            label = "setDotBlinkAlpha",
+        ).value
+    } else 1f
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         (0 until total).forEach { i ->
             val done = i < current - 1
@@ -424,6 +440,7 @@ private fun SetDots(total: Int, current: Int, color: Color = WT.Accent) {
                     .width(if (isCur) 22.dp else 9.dp)
                     .height(9.dp)
                     .clip(RoundedCornerShape(5.dp))
+                    .alpha(if (isCur) blinkAlpha else 1f)
                     .background(
                         when {
                             isCur -> color
