@@ -1,6 +1,7 @@
 package io.shizen.workouttimer.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -69,6 +70,8 @@ fun ActiveScreen(
     onFinishNow: () -> Unit,
     onToggleVibrate: () -> Unit,
     onToggleSound: () -> Unit,
+    overlayOn: Boolean,
+    onToggleOverlay: () -> Unit,
 ) {
     KeepScreenOn()
     var confirmEnd by remember { mutableStateOf(false) }
@@ -80,18 +83,8 @@ fun ActiveScreen(
     val phase = cur.kind
     val dur = cur.duration
     val frac = (1.0 - state.remaining / dur).coerceIn(0.0, 1.0).toFloat()
-    val color = when (phase) {
-        StepKind.COUNTDOWN -> WT.Warn
-        StepKind.REST -> WT.Rest
-        StepKind.WORK -> WT.Accent
-    }
-    val label = stringResource(
-        when (phase) {
-            StepKind.COUNTDOWN -> R.string.active_label_get_ready
-            StepKind.REST -> if (cur.restType == RestType.SUPERSET) R.string.active_label_block_rest else R.string.active_label_rest
-            StepKind.WORK -> R.string.active_label_work
-        }
-    )
+    val color = stepColor(cur)
+    val label = stringResource(stepLabelRes(cur))
     val totalWork = state.totalWork
     val doneWork = state.doneWork
     val notStarted = !state.started
@@ -158,8 +151,8 @@ fun ActiveScreen(
             ContextStrip(steps, state.idx)
 
             if (phase == StepKind.REST) {
-                val nextWork = nextWorkStep(steps, state.idx)
-                val prevWork = prevWorkStep(steps, state.idx)
+                val nextWork = state.nextWork
+                val prevWork = state.prevWork
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -271,6 +264,13 @@ fun ActiveScreen(
                     active = settings.sound,
                     iconSize = 20,
                 )
+                IconBtn(
+                    "pip",
+                    onClick = onToggleOverlay,
+                    contentDescription = stringResource(if (overlayOn) R.string.active_overlay_on else R.string.active_overlay_off),
+                    active = overlayOn,
+                    iconSize = 20,
+                )
                 Spacer(Modifier.weight(1f))
                 Btn(stringResource(R.string.active_finish), onClick = { confirmEnd = true }, variant = BtnVariant.Danger, size = BtnSize.Sm, icon = "check")
             }
@@ -289,11 +289,36 @@ fun ActiveScreen(
     }
 }
 
+// ── Phase helpers (shared with the floating overlay) ────────
+
+/** Accent colour of a step: warn for the countdown, rest blue, work green. */
+fun stepColor(step: Step): Color = when (step.kind) {
+    StepKind.COUNTDOWN -> WT.Warn
+    StepKind.REST -> WT.Rest
+    StepKind.WORK -> WT.Accent
+}
+
+/** Upper-case phase label of a step (GET READY / REST / BLOCK REST / WORK). */
+@StringRes
+fun stepLabelRes(step: Step): Int = when (step.kind) {
+    StepKind.COUNTDOWN -> R.string.active_label_get_ready
+    StepKind.REST -> if (step.restType == RestType.SUPERSET) R.string.active_label_block_rest else R.string.active_label_rest
+    StepKind.WORK -> R.string.active_label_work
+}
+
+/** Remaining time of a step: whole seconds for the countdown, m:ss otherwise. */
+fun timerText(phase: StepKind, remaining: Double): String =
+    if (phase == StepKind.COUNTDOWN) {
+        ceil(remaining).coerceAtLeast(0.0).toInt().toString()
+    } else {
+        fmtClock(remaining)
+    }
+
 // ── Timer hero (bar style) ──────────────────────────────────
 @Composable
 private fun TimerHero(phase: StepKind, remaining: Double, frac: Float, color: Color, label: String) {
     val isCount = phase == StepKind.COUNTDOWN
-    val big = if (isCount) ceil(remaining).coerceAtLeast(0.0).toInt().toString() else fmtClock(remaining)
+    val big = timerText(phase, remaining)
     val fontSize = if (isCount) 120.sp else if (big.length > 4) 76.sp else 92.sp
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -326,26 +351,6 @@ private fun TimerHero(phase: StepKind, remaining: Double, frac: Float, color: Co
             )
         }
     }
-}
-
-/** The first WORK step at or after [idx] (used to preview the upcoming set during rest). */
-private fun nextWorkStep(steps: List<Step>, idx: Int): Step? {
-    var i = idx + 1
-    while (i < steps.size) {
-        if (steps[i].kind == StepKind.WORK) return steps[i]
-        i++
-    }
-    return null
-}
-
-/** The most recent WORK step before [idx] (the set just finished, to log reps during rest). */
-private fun prevWorkStep(steps: List<Step>, idx: Int): Step? {
-    var i = idx - 1
-    while (i >= 0) {
-        if (steps[i].kind == StepKind.WORK) return steps[i]
-        i--
-    }
-    return null
 }
 
 /** Label + stepper for logging reps of a set. */

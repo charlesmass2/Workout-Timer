@@ -58,6 +58,7 @@ fun AppRoot(vm: AppViewModel) {
     val history by vm.history.collectAsState()
     val settings by vm.settings.collectAsState()
     val activeState by vm.activeState.collectAsState()
+    val overlayAllowed by vm.overlayAllowed.collectAsState()
     val resumePrompt by vm.resumePrompt.collectAsState()
     val editing by vm.editing.collectAsState()
     val result by vm.result.collectAsState()
@@ -150,6 +151,8 @@ fun AppRoot(vm: AppViewModel) {
                         onFinishNow = controller::finishNow,
                         onToggleVibrate = vm::toggleVibrate,
                         onToggleSound = vm::toggleSound,
+                        overlayOn = settings.overlay && overlayAllowed,
+                        onToggleOverlay = vm::toggleOverlay,
                     )
                 } else {
                     // Session lost (e.g. process death): the resume prompt offers a restart.

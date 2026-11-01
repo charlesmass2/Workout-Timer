@@ -31,6 +31,12 @@ data class ActiveState(
     val current: Step get() = steps[idx]
     val totalWork: Int get() = steps.count { it.kind == StepKind.WORK }
     val doneWork: Int get() = steps.filterIndexed { i, s -> s.kind == StepKind.WORK && i < idx }.size
+
+    /** The first WORK step after the current one (the upcoming set). */
+    val nextWork: Step? get() = steps.subList(idx + 1, steps.size).firstOrNull { it.kind == StepKind.WORK }
+
+    /** The most recent WORK step before the current one (the set just finished). */
+    val prevWork: Step? get() = steps.subList(0, idx).lastOrNull { it.kind == StepKind.WORK }
 }
 
 /**

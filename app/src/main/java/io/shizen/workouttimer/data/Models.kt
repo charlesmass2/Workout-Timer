@@ -97,6 +97,8 @@ data class WorkoutResult(
 data class Settings(
     val sound: Boolean = true,
     val vibrate: Boolean = true,
+    // Floating timer shown over other apps while a workout runs in the background.
+    val overlay: Boolean = true,
 )
 
 // ── Persisted in-progress session (for resume) ──────────────
