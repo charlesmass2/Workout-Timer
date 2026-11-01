@@ -46,6 +46,7 @@ val WtIcons: Map<String, String> = mapOf(
     "star" to "M12 4l2.3 5 5.2.5-4 3.4 1.3 5.1L12 20.5 7.2 23l1.3-5.1-4-3.4 5.2-.5z",
     "add" to "M12 5v14M5 12h14",
     "layers" to "M12 4l8 4-8 4-8-4 8-4zM4 12l8 4 8-4M4 16l8 4 8-4",
+    "pip" to "M3 5h18v14H3zM12 12h6v4h-6z",
 )
 
 private val FILLED = setOf("play", "star")

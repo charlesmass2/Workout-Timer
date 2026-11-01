@@ -34,7 +34,14 @@ fitness-watch aesthetic, dark theme).
   (alternating each round). Per-exercise duration, rest-between-sets, and
   rest-after-block are all configurable. The library shows the estimated session
   duration if all timings are respected.
-- **Keeps the screen awake** while a workout is running.
+- **Floating timer** while a workout runs in the background: leave the app and a
+  small draggable card stays on top of other apps with the phase (work / rest),
+  the remaining time, the set number, a reps counter (+ / -) and the next set.
+  Tap it to come back to the app, or tap the cross to hide it until you leave the
+  app again. Toggle it from the active screen; the first time, Android asks for
+  the "Display over other apps" permission.
+- **Keeps the screen awake** while a workout is running (also while the floating
+  timer is shown).
 
 ## Project layout
 
@@ -42,6 +49,7 @@ fitness-watch aesthetic, dark theme).
 app/src/main/java/io/shizen/workouttimer/
 ├── data/            Models, schedule builder, formatting, SharedPreferences repo
 ├── timer/           Feedback (sound/vibration) + ActiveController (timer engine)
+├── overlay/         Floating timer window shown over other apps
 ├── ui/
 │   ├── theme/       Colours (oklch→sRGB), fonts, Material theme
 │   ├── components/  Icons, buttons, stepper, sheet, dialog, pill

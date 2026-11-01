@@ -1,6 +1,7 @@
 package io.shizen.workouttimer
 
 import android.app.Application
+import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.shizen.workouttimer.data.Exercise
@@ -12,6 +13,8 @@ import io.shizen.workouttimer.data.Workout
 import io.shizen.workouttimer.data.WorkoutResult
 import io.shizen.workouttimer.data.buildSchedule
 import io.shizen.workouttimer.data.uid
+import io.shizen.workouttimer.overlay.FloatingOverlay
+import io.shizen.workouttimer.overlay.WorkoutOverlay
 import io.shizen.workouttimer.timer.ActiveController
 import io.shizen.workouttimer.timer.ActiveState
 import io.shizen.workouttimer.timer.Feedback
@@ -20,6 +23,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -100,11 +105,41 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val _activeState = MutableStateFlow<ActiveState?>(null)
     val activeState: StateFlow<ActiveState?> = _activeState.asStateFlow()
 
+    // ── Floating overlay (shown over other apps during a workout) ──
+    private val _inBackground = MutableStateFlow(false)
+    private val _overlayDismissed = MutableStateFlow(false)
+    private val _overlayAllowed = MutableStateFlow(FloatingOverlay.canDraw(app))
+    val overlayAllowed: StateFlow<Boolean> = _overlayAllowed.asStateFlow()
+
+    private val overlay = FloatingOverlay(app) {
+        WorkoutOverlay(
+            stateFlow = activeState,
+            onSetReps = { workIndex, value -> controller?.setRepsForWorkIndex(workIndex, value) },
+            onClose = { _overlayDismissed.value = true },
+            onOpenApp = ::openApp,
+        )
+    }
+
     init {
         val s = repo.loadSession()
         if (s != null && s.idx < s.steps.size) {
             pendingSession = s
             _resumePrompt.value = true
+        }
+        // The overlay is visible while a workout runs, the app is in the background,
+        // the user enabled it and did not close it since leaving the app.
+        viewModelScope.launch {
+            combine(_activeState, _inBackground, _overlayDismissed, _settings) { state, inBackground, dismissed, prefs ->
+                state != null && inBackground && !dismissed && prefs.overlay
+            }
+                .distinctUntilChanged()
+                .collect { visible ->
+                    if (visible) {
+                        overlay.show()
+                    } else {
+                        overlay.hide()
+                    }
+                }
         }
     }
 
@@ -120,10 +155,43 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ── Settings ───────────────────────────────────────────
     fun toggleSound() = updateSettings { it.copy(sound = !it.sound) }
     fun toggleVibrate() = updateSettings { it.copy(vibrate = !it.vibrate) }
+    /** Turn the floating overlay on/off, asking for the "Display over other apps" permission if missing. */
+    fun toggleOverlay() {
+        val app = getApplication<Application>()
+        if (!FloatingOverlay.canDraw(app)) {
+            updateSettings { it.copy(overlay = true) }
+            FloatingOverlay.requestPermission(app)
+            return
+        }
+        updateSettings { it.copy(overlay = !it.overlay) }
+    }
+
     private inline fun updateSettings(block: (Settings) -> Settings) {
         val next = block(_settings.value)
         _settings.value = next
         repo.saveSettings(next)
+    }
+
+    // ── App visibility (drives the floating overlay) ───────
+    /** The activity is visible again: hide the overlay and re-check the permission (it may have just been granted). */
+    fun onAppForeground() {
+        _inBackground.value = false
+        _overlayDismissed.value = false
+        _overlayAllowed.value = FloatingOverlay.canDraw(getApplication<Application>())
+    }
+
+    /** The activity left the screen: show the overlay if a workout is running. */
+    fun onAppBackground() {
+        _inBackground.value = true
+    }
+
+    /** Bring the existing task back to the front, as tapping the launcher icon would. */
+    private fun openApp() {
+        val app = getApplication<Application>()
+        val intent = app.packageManager.getLaunchIntentForPackage(app.packageName)
+            ?: Intent(app, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        runCatching { app.startActivity(intent) }
     }
 
     // ── Resume ─────────────────────────────────────────────
@@ -297,6 +365,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        overlay.hide()
         controller?.detach()
         feedback.release()
         super.onCleared()
